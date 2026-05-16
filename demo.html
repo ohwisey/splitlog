@@ -775,28 +775,28 @@
     }
 
     .tailor-actions {
-      display: flex; gap: 8px; margin-top: 16px;
+      display: flex; gap: 12px; margin-top: 24px;
+    }
+    .tailor-save, .tailor-clear {
+      flex: 1;
+      padding: 14px;
+      border-radius: 12px;
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      cursor: pointer; text-align: center;
+      transition: background 0.2s var(--spring), color 0.2s var(--spring), border-color 0.2s var(--spring), transform 0.15s var(--spring), box-shadow 0.2s var(--spring);
     }
     .tailor-save {
-      flex: 1;
-      background: #6ee7b7; color: #000; font-weight: 600;
-      border: none; border-radius: 12px;
-      padding: 16px; font-family: inherit; font-size: 15px;
-      cursor: pointer;
-      transition: transform 0.15s var(--spring), box-shadow 0.2s var(--spring);
+      background: #6ee7b7; color: #000;
+      border: none;
       box-shadow: 0 0 24px rgba(110, 231, 183, 0.18);
     }
-    .tailor-save:active { transform: scale(0.97); }
+    .tailor-save:active { transform: scale(0.97); opacity: 0.88; }
     .tailor-clear {
-      background: transparent; color: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.06); color: #fff;
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 12px;
-      padding: 16px; font-family: inherit; font-size: 13px;
-      cursor: pointer;
-      transition: color 0.2s var(--spring), border-color 0.2s var(--spring), transform 0.15s var(--spring);
     }
+    .tailor-clear:hover  { background: rgba(255, 255, 255, 0.1); }
     .tailor-clear:active { transform: scale(0.97); }
-    .tailor-clear:hover { color: #f87171; border-color: rgba(248, 113, 113, 0.3); }
 
     /* Floating gear icon (top-right of wrap) — opens settings sheet */
     .app-gear {
@@ -1331,14 +1331,23 @@
       font-size: 14px; color: rgba(255,255,255,0.85);
       line-height: 1.55; margin-bottom: 16px;
     }
+    /* Generic popover close — sits beneath self-contained modals (tailor,
+       tip, swap). Quiet text-link style so it doesn't compete with the
+       action buttons above it. */
     .popover-close {
-      width: 100%; padding: 12px;
-      background: rgba(255,255,255,0.06);
-      color: #fff; border: none;
-      border-radius: 10px;
-      font-family: inherit; font-size: 13px; font-weight: 600;
+      display: block;
+      margin: 16px auto 0;
+      padding: 8px 16px;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.5);
+      border: none;
+      border-radius: 8px;
+      font-family: inherit; font-size: 13px; font-weight: 500;
       cursor: pointer;
+      transition: color 0.2s var(--spring), transform 0.15s var(--spring);
     }
+    .popover-close:hover  { color: #fff; }
+    .popover-close:active { transform: scale(0.97); }
     .alt-row {
       display: flex; align-items: center; gap: 12px;
       padding: 12px;
@@ -1380,16 +1389,17 @@
       width: 100%;
       background: #6ee7b7; color: #000;
       border: none;
-      border-radius: 14px;
+      border-radius: 12px;
       padding: 16px;
       font-size: 15px; font-weight: 600;
       font-family: inherit;
       cursor: pointer;
-      margin-top: 14px;
-      transition: opacity 0.15s, transform 0.1s;
+      margin-top: 16px;
+      box-shadow: 0 0 24px rgba(110, 231, 183, 0.18);
+      transition: opacity 0.2s var(--spring), transform 0.15s var(--spring), box-shadow 0.2s var(--spring);
     }
-    .submit-workout:hover { opacity: 0.92; }
-    .submit-workout:active { transform: scale(0.99); }
+    .submit-workout:hover  { opacity: 0.92; }
+    .submit-workout:active { transform: scale(0.97); opacity: 0.88; }
     .submit-workout:disabled {
       background: rgba(255,255,255,0.06);
       color: rgba(255,255,255,0.35);
@@ -1718,18 +1728,25 @@
     .ex-pick-add-actions {
       display: flex; gap: 8px; justify-content: flex-end; margin-top: 2px;
     }
+    .ex-pick-add-cancel, .ex-pick-add-save {
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; min-width: 88px;
+      transition: background 0.2s var(--spring), color 0.2s var(--spring), border-color 0.2s var(--spring), transform 0.15s var(--spring);
+    }
     .ex-pick-add-cancel {
-      background: transparent; color: rgba(255,255,255,0.55);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 8px;
-      padding: 8px 14px; font-family: inherit; font-size: 13px; cursor: pointer;
+      background: rgba(255, 255, 255, 0.06); color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
+    .ex-pick-add-cancel:hover  { background: rgba(255, 255, 255, 0.1); }
+    .ex-pick-add-cancel:active { transform: scale(0.97); }
     .ex-pick-add-save {
-      background: #6ee7b7; color: #000; font-weight: 600;
-      border: none; border-radius: 8px;
-      padding: 8px 14px; font-family: inherit; font-size: 13px; cursor: pointer;
+      background: #6ee7b7; color: #000;
+      border: none;
+      box-shadow: 0 0 16px rgba(110, 231, 183, 0.18);
     }
-    .ex-pick-add-save:active { transform: scale(0.97); }
+    .ex-pick-add-save:active { transform: scale(0.97); opacity: 0.88; }
     .ex-pick-row[data-custom="1"] .ex-pick-name::after {
       content: 'CUSTOM';
       font-size: 9px; letter-spacing: 0.1em; font-weight: 600;
