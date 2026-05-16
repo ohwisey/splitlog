@@ -94,6 +94,20 @@
     // Single helper so every write is try/catch'd and a quota / private-mode
     // failure surfaces visibly instead of silently dropping the user's data.
     let _storageWarned = false;
+
+    // ── Hoisted sync state ────────────────────────────────────────────────
+    // tryWrite() calls schedulePush() (both hoisted by function declaration).
+    // schedulePush reads these four variables, and tryWrite is invoked by
+    // the probeStorage() IIFE further down — which runs at parse time,
+    // before the sync block initializes its own `let` declarations. Without
+    // these hoists, the first localStorage write hits a TDZ on `_skipPush`,
+    // the catch in tryWrite fires the storage banner, and a healthy
+    // localStorage looks broken. Declared up here so the early path is safe.
+    let _skipPush = false;
+    let _pushTimer = null;
+    let supabase = null;
+    let session = null;
+
     function tryWrite(key, value) {
       try {
         localStorage.setItem(key, value);
@@ -3166,12 +3180,11 @@
     const _SL_INJECTED_USER_ID = (typeof __SPLITLOG_USER_ID__ !== 'undefined') ? __SPLITLOG_USER_ID__ : null;
     const _SL_MODE             = (typeof __SPLITLOG_MODE__ !== 'undefined') ? __SPLITLOG_MODE__ : 'standalone';
 
-    let supabase = null;
-    let session = null;
+    // supabase, session, _pushTimer, _skipPush are hoisted near tryWrite —
+    // they need to exist before the probeStorage() IIFE makes its first
+    // localStorage write at parse time.
     let inheritedFromParent = false;
     let syncState = 'local'; // local | configured | syncing | synced | error
-    let _pushTimer = null;
-    let _skipPush = false;
     let _sdkLoadPromise = null;
 
     function loadSupabaseSdk() {
