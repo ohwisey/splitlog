@@ -102,18 +102,30 @@
     // failure surfaces visibly instead of silently dropping the user's data.
     let _storageWarned = false;
 
-    // ── Hoisted sync state ────────────────────────────────────────────────
+    // ── Hoisted sync + view state ─────────────────────────────────────────
     // tryWrite() calls schedulePush() (both hoisted by function declaration).
-    // schedulePush reads these four variables, and tryWrite is invoked by
-    // the probeStorage() IIFE further down — which runs at parse time,
-    // before the sync block initializes its own `let` declarations. Without
-    // these hoists, the first localStorage write hits a TDZ on `_skipPush`,
-    // the catch in tryWrite fires the storage banner, and a healthy
-    // localStorage looks broken. Declared up here so the early path is safe.
-    let _skipPush = false;
-    let _pushTimer = null;
-    let supabase = null;
-    let session = null;
+    // schedulePush reads _skipPush/_pushTimer/supabase/session, and tryWrite
+    // fires from the probeStorage() IIFE further down — which runs at parse
+    // time, before the sync block initializes its own `let` declarations.
+    //
+    // renderSplit() — also called at boot — reads _SL_VIEW, _widgetExpanded,
+    // and (indirectly via renderWidget) syncState. Same TDZ hazard, same
+    // remedy: declare them up here so every early caller sees an
+    // initialized value.
+    let _skipPush          = false;
+    let _pushTimer         = null;
+    let supabase           = null;
+    let session            = null;
+    let syncState          = 'local';   // local | configured | syncing | synced | error
+    let inheritedFromParent = false;
+    let _widgetExpanded    = false;     // toggled by widget tap / back-bar in view: 'today'
+    // SplitLog.mount() declares __SPLITLOG_*__ inside its closure before
+    // running the app code; in the direct-standalone HTML they're undefined.
+    // typeof guards keep both paths working.
+    const _SL_INJECTED_CLIENT  = (typeof __SPLITLOG_SUPABASE_CLIENT__ !== 'undefined') ? __SPLITLOG_SUPABASE_CLIENT__ : null;
+    const _SL_INJECTED_USER_ID = (typeof __SPLITLOG_USER_ID__ !== 'undefined') ? __SPLITLOG_USER_ID__ : null;
+    const _SL_MODE             = (typeof __SPLITLOG_MODE__ !== 'undefined') ? __SPLITLOG_MODE__ : 'standalone';
+    const _SL_VIEW             = ((typeof __SPLITLOG_VIEW__ !== 'undefined') && __SPLITLOG_VIEW__ === 'today') ? 'today' : 'full';
 
     function tryWrite(key, value) {
       try {
@@ -3514,21 +3526,15 @@
     // config + auth tokens (per-device, sensitive — never sync to cloud).
     const SYNC_PROTECTED_KEYS = new Set([SUPABASE_URL_KEY, SUPABASE_ANON_KEY, SUPABASE_AUTH_KEY]);
 
-    // Embedder integration shims — SplitLog.mount(rootEl, options) in the
-    // bundle declares these inside its closure before app code runs. In the
-    // direct-standalone build (this file opened in a browser), they aren't
-    // declared at all; typeof guards keep both paths working.
-    const _SL_INJECTED_CLIENT  = (typeof __SPLITLOG_SUPABASE_CLIENT__ !== 'undefined') ? __SPLITLOG_SUPABASE_CLIENT__ : null;
-    const _SL_INJECTED_USER_ID = (typeof __SPLITLOG_USER_ID__ !== 'undefined') ? __SPLITLOG_USER_ID__ : null;
-    const _SL_MODE             = (typeof __SPLITLOG_MODE__ !== 'undefined') ? __SPLITLOG_MODE__ : 'standalone';
-    const _SL_VIEW             = ((typeof __SPLITLOG_VIEW__ !== 'undefined') && __SPLITLOG_VIEW__ === 'today') ? 'today' : 'full';
-    let   _widgetExpanded      = false; // toggled by tap on the widget card / back-bar
+    // _SL_INJECTED_CLIENT / _SL_INJECTED_USER_ID / _SL_MODE / _SL_VIEW /
+    // _widgetExpanded / syncState / inheritedFromParent are all hoisted up
+    // near tryWrite — they need to exist before renderSplit() boots and
+    // before the probeStorage() IIFE makes its first localStorage write.
 
-    // supabase, session, _pushTimer, _skipPush are hoisted near tryWrite —
-    // they need to exist before the probeStorage() IIFE makes its first
-    // localStorage write at parse time.
-    let inheritedFromParent = false;
-    let syncState = 'local'; // local | configured | syncing | synced | error
+    // supabase / session / _pushTimer / _skipPush / syncState /
+    // inheritedFromParent / _SL_* / _widgetExpanded are all hoisted up near
+    // tryWrite. _sdkLoadPromise stays local to this block — it's only
+    // touched by loadSupabaseSdk() which runs well after boot.
     let _sdkLoadPromise = null;
 
     function loadSupabaseSdk() {
