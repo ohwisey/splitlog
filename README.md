@@ -21,6 +21,28 @@ A single-file workout split tracker. Runs in your browser. Your data stays on yo
 - **Export / Import your data as JSON** for backup
 - **Optional cloud sync** (Supabase) — sign in once, your workouts follow you across devices
 
+## Embedding in your own dashboard
+
+Paste these 3 elements inside `<body>` of your dashboard's `index.html`:
+
+```html
+<section id="splitlog-root"></section>
+<script src="https://ohwisey.github.io/splitlog/splitlog.bundle.js"></script>
+<script>
+  SplitLog.mount(document.getElementById('splitlog-root'), {
+    supabaseClient: window.OhWisey.supabase,
+    userId: window.OhWisey.userId,
+    mode: 'embed'
+  });
+</script>
+```
+
+Commit → push → wait for redeploy → SplitLog appears.
+
+**Requirements:**
+- Your dashboard exposes `window.OhWisey.supabase` and `window.OhWisey.userId` (OhWisey-Starter does this by default)
+- Your Supabase project has the OhWisey-Starter schema applied
+
 ## Three ways to use it
 
 ### 1. Just open the link
