@@ -80,6 +80,7 @@
     const SESSION_PREFIX   = NS + 'session.';   // .{date}.{dayNum} -> { [exId]: { sets: [{wt,reps,done,missed}] } }
     const HISTORY_PREFIX   = NS + 'history.';   // .{exId} -> { date, sets, topWeight, topReps }
     const HISTLOG_PREFIX   = NS + 'histlog.';   // .{exId} -> [{date, topWeight, topReps, volume}, ...]
+    const TAPPED_PREFIX    = NS + 'tapped.';    // .{date} -> '1' — set when a day card is tapped, counts toward streak
     const COMPLETED_PREFIX = NS + 'completed.'; // .{date}.{dayNum} -> { date, snapshot }
     const CARDIO_PREFIX    = NS + 'cardio.';    // .{date}.{dayNum} -> { done, type, customName, totalMinutes, zones }
     const CUSTOM_EX_KEY    = NS + 'customEx';   // array of {id,name,sets,reps,category,group}
@@ -655,7 +656,8 @@
         const k = localStorage.key(i);
         if (!k) continue;
         let date = null;
-        if      (k.startsWith(COMPLETED_PREFIX)) date = k.slice(COMPLETED_PREFIX.length).split('.')[0];
+        if      (k.startsWith(TAPPED_PREFIX))    date = k.slice(TAPPED_PREFIX.length);
+        else if (k.startsWith(COMPLETED_PREFIX)) date = k.slice(COMPLETED_PREFIX.length).split('.')[0];
         else if (k.startsWith(CARDIO_PREFIX))    date = k.slice(CARDIO_PREFIX.length).split('.')[0];
         else if (k.startsWith(SESSION_PREFIX))   date = k.slice(SESSION_PREFIX.length).split('.')[0];
         if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) dates.add(date);
@@ -1181,6 +1183,14 @@
       const dayNum = parseInt(btn.dataset.day, 10);
       const split = getSplit();
       const day = split[dayNum - 1];
+
+      // Streak: tapping any day card on a given date counts that date toward
+      // the streak. Idempotent — re-taps, editing, or tapping a different
+      // day card later that same day all map to the same key, so the streak
+      // counter stays at one increment per calendar day. Persisted as a flag
+      // so a rest-day tap (where no sets/cardio get logged) still counts.
+      const k = TAPPED_PREFIX + todayKey();
+      if (!localStorage.getItem(k)) tryWrite(k, '1');
 
       // Rest day: just lock visually, no logger
       btn.classList.add('selecting');
@@ -2830,7 +2840,7 @@
             k === SETUP_KEY || k === DATA_VERSION_KEY ||
             k.startsWith(SESSION_PREFIX) || k.startsWith(HISTORY_PREFIX) ||
             k.startsWith(HISTLOG_PREFIX) || k.startsWith(COMPLETED_PREFIX) ||
-            k.startsWith(CARDIO_PREFIX)) {
+            k.startsWith(CARDIO_PREFIX) || k.startsWith(TAPPED_PREFIX)) {
           localStorage.removeItem(k);
         }
       });
