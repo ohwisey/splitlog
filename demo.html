@@ -60,6 +60,42 @@
       text-transform: uppercase; color: #fff; white-space: nowrap;
     }
 
+    /* Streak chip — fires above the day grid when ≥1-day streak exists */
+    .streak-row {
+      display: flex; justify-content: center;
+      margin: 0 0 16px;
+    }
+    .streak-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 14px;
+      background: rgba(251, 146, 60, 0.08);
+      border: 1px solid rgba(251, 146, 60, 0.22);
+      border-radius: 100px;
+      font-family: inherit;
+      transition: background 0.2s var(--spring), border-color 0.2s var(--spring);
+    }
+    .streak-emoji {
+      font-size: 14px;
+      filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.45));
+    }
+    .streak-count {
+      font-size: 13px; font-weight: 700;
+      color: #fb923c;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.01em;
+    }
+    .streak-label {
+      font-size: 12px; font-weight: 500;
+      color: rgba(255, 255, 255, 0.55);
+      letter-spacing: 0.01em;
+    }
+    .streak-chip.at-risk {
+      background: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+    .streak-chip.at-risk .streak-emoji { filter: grayscale(0.7) opacity(0.6); }
+    .streak-chip.at-risk .streak-count { color: rgba(251, 146, 60, 0.7); }
+
     /* Day picker grid */
     .day-picker-grid {
       display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;
@@ -2536,6 +2572,47 @@
       const d = new Date();
       return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
+    function shiftDate(ymd, deltaDays) {
+      const [y, m, d] = ymd.split('-').map(Number);
+      const date = new Date(y, m - 1, d);
+      date.setDate(date.getDate() + deltaDays);
+      return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    }
+
+    // ── Streak ─────────────────────────────────────────────────────────────
+    // A date counts as "active" if the user logged anything that day —
+    // a completed workout, a cardio entry, or any in-progress set. Tapping
+    // a day card without logging anything does NOT count (no gaming the
+    // streak). At midnight, an unlogged day automatically breaks the chain.
+    function getActiveDates() {
+      const dates = new Set();
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k) continue;
+        let date = null;
+        if      (k.startsWith(COMPLETED_PREFIX)) date = k.slice(COMPLETED_PREFIX.length).split('.')[0];
+        else if (k.startsWith(CARDIO_PREFIX))    date = k.slice(CARDIO_PREFIX.length).split('.')[0];
+        else if (k.startsWith(SESSION_PREFIX))   date = k.slice(SESSION_PREFIX.length).split('.')[0];
+        if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) dates.add(date);
+      }
+      return dates;
+    }
+    function computeStreak() {
+      const today = todayKey();
+      const active = getActiveDates();
+      const todayLogged = active.has(today);
+      // If today isn't logged yet, the chain is still "alive" if yesterday was
+      // logged — count from yesterday backwards. Once midnight rolls over to a
+      // new today with no activity, the prior day stops counting (the unlogged
+      // day becomes a gap) and the streak goes to 0.
+      let cursor = todayLogged ? today : shiftDate(today, -1);
+      let count = 0;
+      while (active.has(cursor)) {
+        count++;
+        cursor = shiftDate(cursor, -1);
+      }
+      return { count, todayLogged };
+    }
 
     // ── Data layer ─────────────────────────────────────────────────────────
     function getSplit() {
@@ -3006,7 +3083,18 @@
         </div>`;
       }).join('');
 
+      const streak = computeStreak();
+      const streakChip = streak.count > 0
+        ? `<div class="streak-row">
+             <div class="streak-chip${streak.todayLogged ? '' : ' at-risk'}" title="${streak.todayLogged ? 'Logged today — streak alive' : 'Log today to keep your streak alive'}">
+               <span class="streak-emoji">🔥</span>
+               <span class="streak-count">${streak.count}</span>
+               <span class="streak-label">day${streak.count === 1 ? '' : 's'}${streak.todayLogged ? '' : ' · log today to keep'}</span>
+             </div>
+           </div>`
+        : '';
       section.innerHTML = `
+        ${streakChip}
         <div class="day-picker-grid">${tiles}</div>
         <div class="customize-link-row">
           <button class="customize-link" id="picker-customize-link">Customize split</button>
