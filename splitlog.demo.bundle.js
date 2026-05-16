@@ -1701,7 +1701,10 @@
         <div class="logger-card" style="position:relative;">
           <button class="logger-back-arrow" id="logger-back" aria-label="Back to split">←</button>
           <div class="logger-day-header">
-            <div class="logger-day-num">Day ${n}</div>
+            <div class="logger-day-num">
+              Day ${n}
+              <span class="day-tile-tag ${tagClass(day.type)}">${tagLabel(day.type)}</span>
+            </div>
             <div class="logger-day-name-big">${esc(day.name)}</div>
           </div>
           ${bannerHTML}
