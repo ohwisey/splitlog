@@ -61,25 +61,8 @@
     }
 
     /* ──────────────────────────────────────────────────────────────────
-       Widget mode (view: 'today') — compact dashboard card + back-bar
+       Widget mode (view: 'today') — compact dashboard card
        ────────────────────────────────────────────────────────────────── */
-    .widget-back-bar {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: transparent; border: none;
-      color: rgba(255, 255, 255, 0.55);
-      font-family: inherit; font-size: 12px; font-weight: 500;
-      letter-spacing: 0.02em;
-      padding: 8px 0;
-      margin: 0 0 8px;
-      cursor: pointer;
-      transition: color 0.2s var(--spring), transform 0.15s var(--spring);
-    }
-    .widget-back-bar:hover  { color: #fff; }
-    .widget-back-bar:active { transform: scale(0.97); }
-    .widget-back-chevron {
-      font-size: 18px; line-height: 1; font-weight: 400;
-    }
-
     .widget-card {
       position: relative;
       background: rgba(20, 20, 22, 0.6);
@@ -2118,11 +2101,6 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- Widget-mode back-bar: only visible when view='today' is expanded -->
-    <button class="widget-back-bar" id="widget-back-bar" hidden>
-      <span class="widget-back-chevron">‹</span> Back to widget
-    </button>
-
     <!-- Widget-mode card: only visible when view='today' is collapsed -->
     <div class="widget-host" id="widget-host" hidden></div>
 
@@ -2580,22 +2558,25 @@
     };
 
     // ── Auto-detect category from day name ─────────────────────────────────
+    // Tries to be lenient — covers most common ways people name training days
+    // ("Lower", "Leg day", "Glutes + hams", "Delts", "Lats / Traps", etc.).
+    // First match wins, so more specific patterns sit earlier in the chain.
     function detectCategory(name, type) {
       const n = (name || '').toLowerCase();
       if ((type || '').toUpperCase() === 'RECOVERY') return 'rest';
-      if (/rest|recovery/.test(n)) return 'rest';
+      if (/rest|recovery|off\s*day|deload/.test(n)) return 'rest';
       if (/upper/.test(n)) return 'upper';
       if (/lower/.test(n)) return 'lower';
-      if (/full[\s-]?body|full /.test(n) || /^full /.test(n)) return 'full';
+      if (/full[\s-]?body|full body/.test(n)) return 'full';
       if (/push/.test(n)) return 'push';
       if (/pull/.test(n)) return 'pull';
-      if (/legs?|quad|ham/.test(n)) return 'legs';
-      if (/chest/.test(n)) return 'chest';
-      if (/back/.test(n)) return 'back';
-      if (/shoulder|delts?/.test(n)) return 'shoulders';
-      if (/arms?|bicep|tricep/.test(n)) return 'arms';
-      if (/abs?\b|core|midline/.test(n)) return 'abs';
-      return 'full'; // safe default
+      if (/legs?\b|quad|ham|glut|calf|calves|posterior chain/.test(n)) return 'legs';
+      if (/chest|pec/.test(n)) return 'chest';
+      if (/back\b|lat\b|lats\b|traps?\b/.test(n)) return 'back';
+      if (/shoulder|delts?\b|ohp|press day/.test(n)) return 'shoulders';
+      if (/arms?\b|bicep|tricep|gun day/.test(n)) return 'arms';
+      if (/abs?\b|core|midline|six[\s-]?pack/.test(n)) return 'abs';
+      return 'full'; // safe default — Full Body has a good catch-all exercise list
     }
 
     // ── Default-recommended picks per category (for "Auto-fill") ───────────
@@ -3304,11 +3285,10 @@
     // 'picker' (grid) | 'logger' (selected day)
     // Widget mode (view: 'today') wraps this with a compact card; tapping the
     // card sets _widgetExpanded=true and falls through to the same flow below.
-    function toggleWidgetMode(showCollapsed, inWidgetMode) {
+    function toggleWidgetMode(showCollapsed /*, inWidgetMode */) {
       const widgetHost   = document.getElementById('widget-host');
       const appHeader    = document.querySelector('.app-header');
       const splitSection = document.getElementById('split-section');
-      const backBar      = document.getElementById('widget-back-bar');
       const banner       = document.getElementById('demo-banner-slot');
       // Inline style toggles — beats the `hidden` attribute which gets
       // overridden by class-level `display: flex` declarations.
@@ -3316,10 +3296,11 @@
       if (appHeader)    appHeader.style.display    = showCollapsed ? 'none' : '';
       if (splitSection) splitSection.style.display = showCollapsed ? 'none' : '';
       if (banner)       banner.style.display       = showCollapsed ? 'none' : '';
-      if (backBar)      backBar.hidden = !(inWidgetMode && _widgetExpanded);
     }
-    function expandWidget()   { _widgetExpanded = true;  renderSplit(); }
-    function collapseWidget() { _widgetExpanded = false; renderSplit(); }
+    // Widget tap: one-way expand. We don't render a collapse affordance since
+    // (a) the gear opens settings and (b) the user can navigate back through
+    // the normal logger ← / Change buttons inside the expanded UI.
+    function expandWidget() { _widgetExpanded = true; renderSplit(); }
 
     function renderSplit() {
       // Widget-mode collapsed: render the compact card and return early.
@@ -5002,6 +4983,14 @@
 
       const compoundsHTML = renderExGroupHTML('compounds', 'Compounds', [...group.compounds, ...customCompoundIds], picked, pickedMap, cat, customIdSet);
       const isolationHTML = renderExGroupHTML('isolation', 'Isolation / extensions', [...group.isolation, ...customIsolationIds], picked, pickedMap, cat, customIdSet);
+      // Abs / core — always offered as a third group on every non-rest, non-abs
+      // workout day so any split (push/pull/legs/upper/lower/etc.) can stack
+      // core work without changing the day name to "Pull + Abs". Skipped when
+      // the day IS already abs-focused (the isolation group already shows them).
+      const absIds = (cat !== 'abs' && CATEGORY_GROUPS.abs) ? CATEGORY_GROUPS.abs.isolation : [];
+      const absHTML = absIds.length
+        ? renderExGroupHTML('abs', 'Abs / Core', absIds, picked, pickedMap, cat, new Set())
+        : '';
 
       // Step progress
       const nonRest = wizState.draft.filter(d => d.category !== 'rest');
@@ -5024,6 +5013,7 @@
 
         ${compoundsHTML}
         ${isolationHTML}
+        ${absHTML}
 
         ${(group.compounds.length + group.isolation.length === 0) ? '<div class="ex-empty-note">No recommended exercises for this category. Set day name to push / pull / legs / upper / lower / chest / back / shoulders / arms / full body to get suggestions.</div>' : ''}
 
@@ -5253,9 +5243,6 @@
     }
     document.getElementById('open-settings-sheet').addEventListener('click', openSettingsSheet);
     document.getElementById('settings-close').addEventListener('click', closeSettingsSheet);
-    // Widget mode: back-bar collapses the expanded view back to the compact card.
-    const _widgetBackBar = document.getElementById('widget-back-bar');
-    if (_widgetBackBar) _widgetBackBar.addEventListener('click', collapseWidget);
     document.getElementById('settings-modal').addEventListener('click', e => {
       if (e.target.id === 'settings-modal') closeSettingsSheet();
     });
