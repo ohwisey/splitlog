@@ -44,6 +44,37 @@ On Android:
 
 Click **Fork** at the top of this repo. Enable Pages in your fork's Settings (Pages → Deploy from main → /(root)). Your URL becomes `https://<your-username>.github.io/splitlog/`. Your viewers get their own data on your domain.
 
+### 4. Embed SplitLog inside another page
+
+If you're building a dashboard or portal and want SplitLog as one panel inside a bigger UI, drop in the bundle. The URL stays on your page, styles don't leak in either direction, and you can hand SplitLog your existing Supabase client.
+
+```html
+<section id="splitlog-root"></section>
+<script src="https://ohwisey.github.io/splitlog/splitlog.bundle.js"></script>
+<script>
+  SplitLog.mount(document.getElementById('splitlog-root'), {
+    supabaseClient: window.MyDashboard.supabase,  // optional — uses parent's session
+    userId: window.MyDashboard.userId,            // optional — explicit user id
+    mode: 'embed',                                // 'embed' (default) | 'standalone'
+  });
+</script>
+```
+
+**What the bundle does**
+- Defines exactly one global: `window.SplitLog` with a single `mount(rootEl, options)` method.
+- Forces `rootEl.id = 'splitlog-root'` so the scoped stylesheet matches.
+- Sets `rootEl.dataset.mode` to `embed` or `standalone` (affects body-level padding rules).
+- Injects a single `<style id="splitlog-bundle-styles">` into `<head>` whose rules are all prefixed with `#splitlog-root` — no leakage onto your host page's elements.
+- All DOM queries are scoped to the root element, so SplitLog's IDs (`split-section`, `settings-modal`, etc.) can't collide with anything on your page.
+
+**Supabase integration**
+
+If you pass `supabaseClient`, SplitLog skips its own SDK load, skips config discovery, and skips the sign-in UI. It reuses your client and your session. Sync starts immediately. Without `supabaseClient`, SplitLog falls back to its standalone auth (paste-URL/anon-key + magic-link in the Settings sheet) and runs local-only until configured.
+
+**Pinning the bundle version**
+
+Pages serves whatever is at `main`. If you want immutability for production, copy the file into your own repo or pin it to a tagged release URL.
+
 ## Where your data lives
 
 By default, everything is in `localStorage` under the `splitlog.*` namespace. Nothing leaves your device. No analytics, no tracking, no fetch calls.
@@ -124,6 +155,18 @@ The colored dot on the gear icon:
 ### Reset and sync
 
 **Settings → Reset all data** clears local data AND pushes the empty state to the cloud, so other devices won't restore old data on next sync. Your Supabase URL/key/session aren't touched by Reset — use **Forget config** in the Sync section if you want to remove those.
+
+## Building the bundle
+
+The single source of truth is `index.html`. `splitlog.bundle.js` and `splitlog.demo.bundle.js` are generated from it. Run:
+
+```
+node build-bundle.js
+```
+
+This reads `index.html`, prefixes every CSS selector with `#splitlog-root` (mapping `body`/`html` rules to `[data-mode="standalone"]`), rewrites the inline script's `document.getElementById|querySelector|querySelectorAll` calls to root-scoped helpers, wraps everything in an IIFE that defines `window.SplitLog.mount`, and writes both bundles to the repo root.
+
+No build framework, no dependencies — just Node. Commit the regenerated bundles when shipping changes that touch CSS, JS, or body markup.
 
 ## License
 

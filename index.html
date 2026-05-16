@@ -2022,7 +2022,10 @@
       el.id = 'storage-banner';
       el.className = 'storage-banner';
       el.innerHTML = `<strong>Storage is blocked</strong><br>Your browser isn't letting this page save data (private mode? quota full?). Sets you log won't persist after refresh.`;
-      document.body.appendChild(el);
+      // Anchor inside the app's own root (`.wrap` exists in both standalone
+      // and embed contexts) so scoped CSS matches in the bundle build.
+      const host = document.querySelector('.wrap') || document.body;
+      host.appendChild(el);
     }
     // Verify storage works on boot — surfaces the banner immediately if not.
     (function probeStorage() {
@@ -5054,6 +5057,14 @@
     // config + auth tokens (per-device, sensitive — never sync to cloud).
     const SYNC_PROTECTED_KEYS = new Set([SUPABASE_URL_KEY, SUPABASE_ANON_KEY, SUPABASE_AUTH_KEY]);
 
+    // Embedder integration shims — SplitLog.mount(rootEl, options) in the
+    // bundle declares these inside its closure before app code runs. In the
+    // direct-standalone build (this file opened in a browser), they aren't
+    // declared at all; typeof guards keep both paths working.
+    const _SL_INJECTED_CLIENT  = (typeof __SPLITLOG_SUPABASE_CLIENT__ !== 'undefined') ? __SPLITLOG_SUPABASE_CLIENT__ : null;
+    const _SL_INJECTED_USER_ID = (typeof __SPLITLOG_USER_ID__ !== 'undefined') ? __SPLITLOG_USER_ID__ : null;
+    const _SL_MODE             = (typeof __SPLITLOG_MODE__ !== 'undefined') ? __SPLITLOG_MODE__ : 'standalone';
+
     let supabase = null;
     let session = null;
     let inheritedFromParent = false;
@@ -5196,7 +5207,28 @@
         return;
       }
 
-      // 1. Try parent dashboard
+      // 0. Embedder supplied a ready-to-use client via SplitLog.mount options.
+      // Skip the SDK load, skip config discovery, skip auth UI. Trust the host.
+      if (_SL_INJECTED_CLIENT) {
+        supabase = _SL_INJECTED_CLIENT;
+        inheritedFromParent = true;
+        if (_SL_INJECTED_USER_ID) {
+          session = { user: { id: _SL_INJECTED_USER_ID, email: '(inherited)' } };
+        } else {
+          try {
+            const { data } = await supabase.auth.getSession();
+            session = (data && data.session) || null;
+          } catch {}
+        }
+        if (session) {
+          await firstSignInSync();
+        } else {
+          setSyncState('configured');
+        }
+        return;
+      }
+
+      // 1. Try parent dashboard via window.opener
       let config = getInheritedConfig();
       if (config) inheritedFromParent = true;
 
@@ -5272,14 +5304,17 @@
       // Signed in — pull, adopt if non-empty, else push local
       await firstSignInSync();
 
-      // Expose to other ohwisey standalones that might be opened from here
-      try {
-        window.ohwisey = {
-          supabaseUrl: config.url,
-          supabaseAnonKey: config.key,
-          get session() { return session; },
-        };
-      } catch {}
+      // Expose to other ohwisey standalones that might be opened from here.
+      // Skip in embed mode — the host already owns window.ohwisey.
+      if (_SL_MODE === 'standalone') {
+        try {
+          window.ohwisey = {
+            supabaseUrl: config.url,
+            supabaseAnonKey: config.key,
+            get session() { return session; },
+          };
+        } catch {}
+      }
     }
 
     async function firstSignInSync() {
