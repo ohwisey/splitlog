@@ -1797,7 +1797,7 @@
     // localStorage namespace we use. On Vercel both files share the same
     // origin, so a single namespace would make template.html inherit the
     // demo's seeded data — namespacing keeps them cleanly independent.
-    const DEMO_MODE        = false; // template.html — no demo seed
+    const DEMO_MODE        = true;  // demo.html — sample data for screenshots
     // Separate namespace per build mode prevents same-origin collisions
     // when multiple instances are hosted on the same domain.
     const NS               = DEMO_MODE ? 'splitlog.demo.' : 'splitlog.';
