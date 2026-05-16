@@ -23,9 +23,13 @@
       background: #000;
       color: #fff;
       /* System font stack — no external dependency. Works offline, no Google Fonts call. */
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Inter, system-ui, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
       -webkit-font-smoothing: antialiased;
       min-height: 100vh;
+    }
+    :root {
+      --spring: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
     }
     body {
       display: flex; justify-content: center;
@@ -54,61 +58,74 @@
 
     /* Day picker grid */
     .day-picker-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;
     }
     .day-tile-wrap { position: relative; }
     .day-tile {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px; padding: 14px; text-align: left;
+      background: rgba(20, 20, 22, 0.6);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 20px;
+      padding: 24px; text-align: left;
+      min-height: 132px;
       cursor: pointer;
-      transition: transform 0.15s, opacity 0.2s, box-shadow 0.3s, border-color 0.2s;
+      transition: transform 0.2s var(--spring), opacity 0.2s var(--spring), box-shadow 0.3s var(--spring), border-color 0.2s var(--spring);
       position: relative; overflow: hidden;
       font-family: inherit; width: 100%; color: #fff;
     }
-    .day-tile:active { transform: scale(0.98); }
+    .day-tile::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .day-tile:active { transform: scale(0.97); }
     .day-tile.selecting {
-      transform: scale(1.05);
-      box-shadow: 0 0 28px rgba(110, 231, 183, 0.45);
+      transform: scale(1.04);
+      box-shadow: 0 0 32px rgba(110, 231, 183, 0.45);
       border-color: #6ee7b7; z-index: 2;
     }
     .day-tile.dimmed { opacity: 0.3; }
     .day-tile-num {
-      font-size: 11px; letter-spacing: 0.6px;
+      font-size: 11px; letter-spacing: 0.08em;
       color: rgba(255, 255, 255, 0.4);
-      text-transform: uppercase; margin-bottom: 4px;
+      text-transform: uppercase; margin-bottom: 8px;
+      font-weight: 500;
     }
     .day-tile-name {
-      font-size: 15px; font-weight: 600; color: #fff;
-      margin: 0 0 8px; line-height: 1.2;
+      font-size: 16px; font-weight: 600; color: #fff;
+      margin: 0 0 12px; line-height: 1.2;
+      letter-spacing: -0.01em;
     }
     .day-tile-tag {
-      font-size: 10px; letter-spacing: 0.5px; text-transform: uppercase;
-      padding: 2px 8px; border-radius: 4px; display: inline-block; font-weight: 600;
+      font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 4px 8px; border-radius: 6px; display: inline-block; font-weight: 600;
     }
     .day-tile-count {
-      font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 6px;
+      font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 8px;
     }
     .day-tile.completed {
-      border-color: rgba(110, 231, 183, 0.25);
-      background: rgba(110, 231, 183, 0.04);
+      border-color: rgba(110, 231, 183, 0.28);
+      background: rgba(110, 231, 183, 0.05);
     }
     .day-tile-edit {
       position: absolute;
-      top: 8px; right: 8px;
-      width: 26px; height: 26px;
+      top: 12px; right: 12px;
+      width: 24px; height: 24px;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: rgba(255, 255, 255, 0.5);
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.3);
       display: inline-flex; align-items: center; justify-content: center;
-      font-family: inherit; font-size: 12px; cursor: pointer;
+      font-family: inherit; font-size: 14px; cursor: pointer;
       padding: 0;
-      transition: all 0.15s;
+      transition: opacity 0.2s var(--spring), color 0.2s var(--spring), background 0.2s var(--spring);
+      z-index: 2;
     }
     .day-tile-edit:hover {
       background: rgba(110, 231, 183, 0.1);
-      border-color: rgba(110, 231, 183, 0.3);
       color: #6ee7b7;
     }
     .tag-heavy  { background: rgba(244, 114, 182, 0.12); color: #f472b6; }
@@ -325,10 +342,10 @@
     .empty-hero-cta {
       background: #6ee7b7; color: #000;
       border: none; border-radius: 12px;
-      padding: 12px 22px;
+      padding: 12px 24px;
       font-family: inherit; font-size: 14px; font-weight: 600;
       cursor: pointer;
-      transition: transform 0.1s var(--ease, cubic-bezier(0.22, 0.61, 0.36, 1));
+      transition: transform 0.15s var(--spring), box-shadow 0.2s var(--spring);
       box-shadow: 0 0 24px rgba(110, 231, 183, 0.18);
     }
     .empty-hero-cta:active { transform: scale(0.97); }
@@ -339,21 +356,22 @@
       color: rgba(110, 231, 183, 0.85);
       border: 1px solid rgba(110, 231, 183, 0.22);
       border-radius: 10px;
-      padding: 9px 16px;
+      padding: 8px 16px;
       font-family: inherit; font-size: 12px; font-weight: 500;
       cursor: pointer; letter-spacing: 0.02em;
-      transition: all 0.15s;
+      transition: background 0.2s var(--spring), border-color 0.2s var(--spring), color 0.2s var(--spring), transform 0.15s var(--spring);
     }
     .empty-hero-secondary:hover {
       background: rgba(110, 231, 183, 0.06);
       border-color: rgba(110, 231, 183, 0.4);
       color: #6ee7b7;
     }
+    .empty-hero-secondary:active { transform: scale(0.97); }
     .install-hint {
-      margin-top: 18px; padding: 10px 14px;
+      margin-top: 16px; padding: 12px 16px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
+      border-radius: 12px;
       color: rgba(255, 255, 255, 0.65);
       font-size: 12px; line-height: 1.45;
       text-align: left;
@@ -413,23 +431,23 @@
 
     /* Tailor profile form — card per field, chip selectors, unit toggles */
     .tailor-form {
-      display: flex; flex-direction: column; gap: 10px;
-      margin-top: 2px;
+      display: flex; flex-direction: column; gap: 12px;
+      margin-top: 4px;
     }
     .tailor-field {
       background: rgba(255, 255, 255, 0.025);
       border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
-      padding: 12px 14px;
+      border-radius: 16px;
+      padding: 16px;
     }
     .tailor-field-head {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; margin-bottom: 8px;
+      gap: 12px; margin-bottom: 12px;
     }
     .tailor-label {
-      font-size: 10px; font-weight: 600;
-      letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.55);
+      font-size: 13px; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.85);
     }
     .tailor-input-wrap {
       display: flex; align-items: center; gap: 8px;
@@ -438,12 +456,12 @@
       flex: 1; min-width: 0;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 9px; color: #fff;
-      font-family: inherit; font-size: 16px; font-weight: 500;
+      border-radius: 10px; color: #fff;
+      font-family: inherit; font-size: 14px; font-weight: 500;
       font-variant-numeric: tabular-nums;
-      padding: 10px 12px; outline: none;
+      padding: 8px 12px; outline: none;
       color-scheme: dark;
-      transition: all 0.15s;
+      transition: border-color 0.2s var(--spring), background 0.2s var(--spring);
     }
     .tailor-input-wrap input:focus {
       border-color: rgba(110, 231, 183, 0.45);
@@ -457,24 +475,25 @@
 
     /* Chip selectors (gender, gym level) */
     .tailor-chips {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
     }
     .tailor-chips-3 { grid-template-columns: 1fr 1fr 1fr; }
     .tailor-chip {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
+      border-radius: 12px;
       color: rgba(255, 255, 255, 0.7);
       font-family: inherit; font-size: 13px; font-weight: 500;
-      padding: 9px 8px; cursor: pointer;
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-      transition: all 0.15s;
+      padding: 12px 8px; cursor: pointer;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      transition: background 0.2s var(--spring), border-color 0.2s var(--spring), color 0.2s var(--spring), transform 0.15s var(--spring);
     }
     .tailor-chip:hover {
       background: rgba(110, 231, 183, 0.06);
       border-color: rgba(110, 231, 183, 0.25);
       color: #fff;
     }
+    .tailor-chip:active { transform: scale(0.97); }
     .tailor-chip.active {
       background: rgba(110, 231, 183, 0.12);
       border-color: #6ee7b7;
@@ -483,7 +502,7 @@
     }
     .tailor-chip .chip-title { font-size: 13px; font-weight: 600; }
     .tailor-chip .chip-sub {
-      font-size: 9px; letter-spacing: 0.06em;
+      font-size: 10px; letter-spacing: 0.04em;
       color: rgba(255, 255, 255, 0.4);
     }
     .tailor-chip.active .chip-sub { color: rgba(110, 231, 183, 0.65); }
@@ -493,19 +512,19 @@
       display: inline-flex;
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 7px;
+      border-radius: 8px;
       padding: 2px;
-      gap: 1px;
+      gap: 2px;
     }
     .tailor-unit-btn {
       background: transparent;
       border: none;
       color: rgba(255, 255, 255, 0.45);
-      font-family: inherit; font-size: 10px; font-weight: 600;
+      font-family: inherit; font-size: 11px; font-weight: 600;
       letter-spacing: 0.04em;
-      padding: 4px 9px; border-radius: 5px;
+      padding: 4px 10px; border-radius: 6px;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: background 0.2s var(--spring), color 0.2s var(--spring);
     }
     .tailor-unit-btn:hover { color: rgba(255, 255, 255, 0.8); }
     .tailor-unit-btn.active {
@@ -514,14 +533,15 @@
     }
 
     .tailor-actions {
-      display: flex; gap: 8px; margin-top: 14px;
+      display: flex; gap: 8px; margin-top: 16px;
     }
     .tailor-save {
       flex: 1;
       background: #6ee7b7; color: #000; font-weight: 600;
       border: none; border-radius: 12px;
-      padding: 14px; font-family: inherit; font-size: 15px;
-      cursor: pointer; transition: transform 0.1s;
+      padding: 16px; font-family: inherit; font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.15s var(--spring), box-shadow 0.2s var(--spring);
       box-shadow: 0 0 24px rgba(110, 231, 183, 0.18);
     }
     .tailor-save:active { transform: scale(0.97); }
@@ -529,9 +549,11 @@
       background: transparent; color: rgba(255, 255, 255, 0.5);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
-      padding: 14px 18px; font-family: inherit; font-size: 13px;
+      padding: 16px; font-family: inherit; font-size: 13px;
       cursor: pointer;
+      transition: color 0.2s var(--spring), border-color 0.2s var(--spring), transform 0.15s var(--spring);
     }
+    .tailor-clear:active { transform: scale(0.97); }
     .tailor-clear:hover { color: #f87171; border-color: rgba(248, 113, 113, 0.3); }
 
     /* Floating gear icon (top-right of wrap) — opens settings sheet */
@@ -545,87 +567,105 @@
       border-radius: 50%;
       color: rgba(255, 255, 255, 0.55);
       cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      transition: background 0.2s var(--spring), color 0.2s var(--spring), border-color 0.2s var(--spring), transform 0.15s var(--spring);
       z-index: 5;
     }
     .app-gear:hover {
       background: rgba(255, 255, 255, 0.07);
       color: #fff; border-color: rgba(255, 255, 255, 0.14);
     }
-    .app-gear:active { transform: scale(0.96); }
+    .app-gear:active { transform: scale(0.97); }
     .app-gear svg { display: block; }
 
     /* Quiet "Customize split" text-link — sits below the day-picker grid */
     .customize-link-row {
       text-align: center;
-      margin: 14px 0 4px;
+      margin: 16px 0 4px;
     }
     .customize-link {
       display: inline-block;
-      padding: 4px 6px;
+      padding: 8px 12px;
       background: transparent; border: none;
       color: rgba(255, 255, 255, 0.4);
       font-family: inherit; font-size: 12px; font-weight: 500;
       letter-spacing: 0.02em;
       cursor: pointer;
-      transition: color 0.15s;
+      transition: color 0.2s var(--spring), transform 0.15s var(--spring);
     }
     .customize-link:hover { color: rgba(110, 231, 183, 0.85); }
-    .customize-link:active { color: #6ee7b7; }
+    .customize-link:active { color: #6ee7b7; transform: scale(0.97); }
 
-    /* Settings sheet — list rows + danger row + meta footer */
+    /* Settings sheet — grouped list with subtle dividers */
     .settings-list {
       display: flex; flex-direction: column;
-      gap: 8px; margin-top: 8px;
+      margin-top: 16px;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      overflow: hidden;
     }
     .settings-row {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 14px;
-      padding: 14px 16px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 12px;
+      gap: 16px;
+      padding: 16px 20px;
+      background: transparent;
+      border: none;
       color: #fff;
-      font-family: inherit; font-size: 14px; font-weight: 500;
+      font-family: inherit; font-size: 15px; font-weight: 500;
       text-align: left; cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-      min-height: 48px;
+      transition: background 0.2s var(--spring);
+      min-height: 56px;
+      position: relative;
+    }
+    .settings-row:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 20px; right: 20px; bottom: 0;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.05);
     }
     .settings-row:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.04);
     }
+    .settings-row:active { background: rgba(255, 255, 255, 0.06); }
     .settings-row-label {
-      display: flex; flex-direction: column; gap: 3px;
+      display: flex; flex-direction: column; gap: 4px;
     }
     .settings-row-sub {
-      font-size: 11px; font-weight: 400;
+      font-size: 12px; font-weight: 400;
       color: rgba(255, 255, 255, 0.45);
       letter-spacing: 0.01em;
     }
     .settings-row-chev {
-      color: rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.25);
       font-size: 18px; font-weight: 400;
     }
+    /* Section break (between Tailor and Export rows) */
+    .settings-section-gap {
+      height: 12px;
+      background: transparent;
+      pointer-events: none;
+    }
     .settings-row.danger {
-      color: #f87171;
-      border-color: rgba(248, 113, 113, 0.18);
-      background: rgba(248, 113, 113, 0.04);
+      color: rgba(239, 68, 68, 0.9);
+      background: rgba(239, 68, 68, 0.06);
     }
     .settings-row.danger:hover {
-      background: rgba(248, 113, 113, 0.08);
-      border-color: rgba(248, 113, 113, 0.3);
+      background: rgba(239, 68, 68, 0.12);
     }
     .settings-row.danger .settings-row-sub {
-      color: rgba(248, 113, 113, 0.6);
+      color: rgba(239, 68, 68, 0.55);
+    }
+    .settings-row.danger .settings-row-chev {
+      color: rgba(239, 68, 68, 0.5);
     }
     .settings-msg {
-      font-size: 11px; color: rgba(110, 231, 183, 0.85);
-      text-align: center; margin-top: 12px;
+      font-size: 12px; color: rgba(110, 231, 183, 0.85);
+      text-align: center; margin-top: 16px;
       min-height: 14px;
     }
     .settings-meta {
-      margin-top: 22px;
+      margin-top: 24px;
       text-align: center;
       font-size: 11px;
       color: rgba(255, 255, 255, 0.3);
@@ -633,14 +673,16 @@
       line-height: 1.7;
     }
     .settings-close {
-      width: 100%; margin-top: 14px;
-      padding: 12px;
+      width: 100%; margin-top: 16px;
+      padding: 14px;
       background: rgba(255, 255, 255, 0.06);
       border: none; border-radius: 12px;
-      color: #fff; font-family: inherit; font-size: 14px; font-weight: 500;
+      color: #fff; font-family: inherit; font-size: 15px; font-weight: 500;
       cursor: pointer;
+      transition: background 0.2s var(--spring), transform 0.15s var(--spring);
     }
     .settings-close:hover { background: rgba(255, 255, 255, 0.1); }
+    .settings-close:active { transform: scale(0.97); }
 
     /* ── Cardio card (per-day) ──────────────────────────────────────────── */
     .cardio-card {
@@ -1110,25 +1152,39 @@
     /* Modal */
     .modal {
       position: fixed; inset: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.55);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
       display: none; align-items: flex-end; justify-content: center;
       z-index: 100; overflow-y: auto;
     }
     .modal.open { display: flex; }
     .modal-sheet {
-      background: #0a0a0f;
-      border-radius: 20px 20px 0 0;
-      padding: 22px 20px 40px;
+      background: rgba(20, 20, 22, 0.85);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      backdrop-filter: blur(40px) saturate(180%);
+      border-radius: 24px 24px 0 0;
+      padding: 24px 24px 40px;
       width: 100%; max-width: 560px; max-height: 92vh; overflow-y: auto;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+    .modal-sheet::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 30%);
+      pointer-events: none;
     }
     .modal-title {
-      font-size: 16px; font-weight: 600; color: #fff;
+      font-size: 17px; font-weight: 600; color: #fff;
       text-align: center; margin-bottom: 4px;
+      letter-spacing: -0.01em;
     }
     .modal-sub {
-      font-size: 12px; color: rgba(255, 255, 255, 0.45);
-      text-align: center; margin-bottom: 20px;
+      font-size: 13px; color: rgba(255, 255, 255, 0.5);
+      text-align: center; margin-bottom: 24px;
+      line-height: 1.4;
     }
     .step-progress {
       font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
@@ -1343,16 +1399,18 @@
       vertical-align: middle;
     }
 
-    .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
+    .modal-actions { display: flex; gap: 12px; margin-top: 24px; }
     .modal-btn-cancel, .modal-btn-save, .modal-btn-back {
-      flex: 1; padding: 14px; border-radius: 12px;
+      flex: 1; padding: 16px; border-radius: 12px;
       font-weight: 600; font-size: 14px;
       border: none; cursor: pointer; font-family: inherit;
+      transition: background 0.2s var(--spring), opacity 0.2s var(--spring), transform 0.15s var(--spring);
     }
+    .modal-btn-cancel:active, .modal-btn-back:active, .modal-btn-save:active { transform: scale(0.97); }
     .modal-btn-cancel { background: rgba(255, 255, 255, 0.05); color: #fff; }
     .modal-btn-back   { background: rgba(255, 255, 255, 0.05); color: #fff; }
     .modal-btn-save   { background: #6ee7b7; color: #000; }
-    .modal-btn-save:disabled { opacity: 0.4; cursor: not-allowed; }
+    .modal-btn-save:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
     /* Logger view */
     .logger-card {
