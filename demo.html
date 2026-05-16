@@ -60,6 +60,71 @@
       text-transform: uppercase; color: #fff; white-space: nowrap;
     }
 
+    /* Session card — intermediate "you picked Day N" view between tapping a
+       day tile and opening the full logger. Mirrors the frosted-glass treatment
+       of the day tiles with a mint accent. */
+    .session-card {
+      background: rgba(20, 20, 22, 0.6);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(110, 231, 183, 0.22);
+      border-radius: 20px;
+      padding: 24px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 0 32px rgba(110, 231, 183, 0.06);
+      animation: sessionCardIn 0.45s var(--spring) both;
+    }
+    @keyframes sessionCardIn {
+      0%   { opacity: 0; transform: translateY(6px) scale(0.98); }
+      100% { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+    .session-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(110, 231, 183, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .session-card-label {
+      font-size: 11px; font-weight: 500;
+      color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .session-card-name {
+      font-size: 22px; font-weight: 600; color: #fff;
+      margin: 0 0 16px;
+      letter-spacing: -0.01em;
+    }
+    .session-card-streak {
+      display: inline-flex; align-items: baseline; gap: 6px;
+      margin: 0 0 20px;
+    }
+    .session-card-streak .streak-emoji { font-size: 14px; }
+    .session-card-streak .streak-count { font-size: 14px; }
+    .session-card-streak .streak-label { font-size: 13px; }
+    .session-card-actions {
+      display: flex; gap: 12px;
+    }
+    .session-card-btn-primary, .session-card-btn-secondary {
+      flex: 1; padding: 14px;
+      border-radius: 12px;
+      font-family: inherit; font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer; text-align: center;
+      transition: background 0.2s var(--spring), opacity 0.2s var(--spring), transform 0.15s var(--spring);
+    }
+    .session-card-btn-primary  {
+      background: #6ee7b7; color: #000;
+      box-shadow: 0 0 24px rgba(110, 231, 183, 0.2);
+    }
+    .session-card-btn-primary:active   { transform: scale(0.97); opacity: 0.88; }
+    .session-card-btn-secondary {
+      background: rgba(255, 255, 255, 0.06); color: #fff;
+    }
+    .session-card-btn-secondary:hover  { background: rgba(255, 255, 255, 0.1); }
+    .session-card-btn-secondary:active { transform: scale(0.97); }
+
     /* Streak chip — fires above the day grid when ≥1-day streak exists.
        No pill background; the flame + count carry the moment. Slow ember
        pulse on the flame, sleek pop-in when the chip first renders. */
@@ -3079,10 +3144,65 @@
       }
 
       if (picked != null) {
-        renderLogger(section, split, picked);
+        // Tap-to-summary flow: a day tile tap lands here with _loggerActive=false,
+        // showing a "you picked Day N" confirmation card. The user explicitly
+        // opens the logger from there (or hits Change to go back to the grid).
+        // Already-submitted days skip the summary — they jump straight to the
+        // locked card so the user can edit/delete/log cardio without an extra
+        // tap. Same for rest days where there's no separate logger UI.
+        const day = split[picked - 1];
+        const isRest = day && day.category === 'rest';
+        const alreadyCompleted = !!getCompleted(picked);
+        if (_loggerActive || alreadyCompleted || isRest) {
+          renderLogger(section, split, picked);
+        } else {
+          renderDaySummary(section, split, picked);
+        }
       } else {
         renderPicker(section, split);
       }
+    }
+
+    // In-memory flag — toggled to true when the user taps "Open Logger" on the
+    // summary card. Resets on reload (refresh while in logger lands on summary,
+    // which is fine: one tap re-enters). Cleared whenever pickedDay clears.
+    let _loggerActive = false;
+
+    function renderDaySummary(section, split, dayNum) {
+      const day = split[dayNum - 1];
+      if (!day) { clearPickedDay(); renderSplit(); return; }
+      const n = String(dayNum).padStart(2, '0');
+      const streak = computeStreak();
+      const completed = !!getCompleted(dayNum);
+      const streakRow = streak.count > 0
+        ? `<div class="session-card-streak">
+             <span class="streak-emoji">🔥</span>
+             <span class="streak-count">${streak.count}</span>
+             <span class="streak-label">day streak</span>
+           </div>`
+        : '';
+      section.innerHTML = `
+        <div class="session-card">
+          <div class="session-card-label">
+            ${completed ? '✓ ' : ''}Day ${n}
+            <span class="day-tile-tag ${tagClass(day.type)}">${tagLabel(day.type)}</span>
+          </div>
+          <div class="session-card-name">${esc(day.name)}</div>
+          ${streakRow}
+          <div class="session-card-actions">
+            <button class="session-card-btn-primary" id="session-open">Open Logger</button>
+            <button class="session-card-btn-secondary" id="session-change">Change</button>
+          </div>
+        </div>`;
+      document.getElementById('session-open').addEventListener('click', () => {
+        _loggerActive = true;
+        renderSplit();
+      });
+      document.getElementById('session-change').addEventListener('click', () => {
+        _loggerActive = false;
+        clearPickedDay();
+        renderSplit();
+      });
     }
 
     function renderPicker(section, split) {
@@ -3157,6 +3277,9 @@
       });
       setTimeout(() => {
         setPickedDay(dayNum);
+        // A fresh tap always lands on the summary card — even if the previous
+        // pick had Open Logger pressed, this is a new day choice.
+        _loggerActive = false;
         renderSplit();
       }, 450);
     }
