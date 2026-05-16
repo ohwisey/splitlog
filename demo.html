@@ -60,6 +60,137 @@
       text-transform: uppercase; color: #fff; white-space: nowrap;
     }
 
+    /* ──────────────────────────────────────────────────────────────────
+       Widget mode (view: 'today') — compact dashboard card + back-bar
+       ────────────────────────────────────────────────────────────────── */
+    .widget-back-bar {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: transparent; border: none;
+      color: rgba(255, 255, 255, 0.55);
+      font-family: inherit; font-size: 12px; font-weight: 500;
+      letter-spacing: 0.02em;
+      padding: 8px 0;
+      margin: 0 0 8px;
+      cursor: pointer;
+      transition: color 0.2s var(--spring), transform 0.15s var(--spring);
+    }
+    .widget-back-bar:hover  { color: #fff; }
+    .widget-back-bar:active { transform: scale(0.97); }
+    .widget-back-chevron {
+      font-size: 18px; line-height: 1; font-weight: 400;
+    }
+
+    .widget-card {
+      position: relative;
+      background: rgba(20, 20, 22, 0.6);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 20px;
+      min-height: 140px; max-height: 200px;
+      cursor: pointer;
+      overflow: hidden;
+      text-align: left;
+      width: 100%;
+      color: inherit;
+      font-family: inherit;
+      transition: transform 0.2s var(--spring), border-color 0.2s var(--spring), background 0.2s var(--spring);
+    }
+    .widget-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: inherit;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .widget-card:hover  { border-color: rgba(110, 231, 183, 0.22); }
+    .widget-card:active { transform: scale(0.985); }
+    .widget-card.completed {
+      border-color: rgba(110, 231, 183, 0.28);
+      background: rgba(110, 231, 183, 0.05);
+    }
+
+    /* Widget gear lives in the card's top-right; reuses sync-dot styling */
+    .widget-gear {
+      position: absolute;
+      top: 12px; right: 12px;
+      width: 32px; height: 32px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 50%;
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      z-index: 4;
+      transition: background 0.2s var(--spring), color 0.2s var(--spring), transform 0.15s var(--spring);
+    }
+    .widget-gear:hover  { background: rgba(255, 255, 255, 0.08); color: #fff; }
+    .widget-gear:active { transform: scale(0.94); }
+    .widget-gear svg   { display: block; }
+
+    .widget-day-num {
+      font-size: 10px; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.45);
+      margin-bottom: 6px;
+    }
+    .widget-day-name {
+      font-size: 19px; font-weight: 600; color: #fff;
+      letter-spacing: -0.01em;
+      margin: 0 0 8px;
+      padding-right: 48px; /* clear the gear */
+    }
+    .widget-tag-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px;
+    }
+    .widget-tag-row .day-tile-tag { /* reuse existing tag styles */ }
+    .widget-progress {
+      font-size: 12px; color: rgba(255, 255, 255, 0.5);
+      letter-spacing: 0.01em;
+      line-height: 1.45;
+    }
+    .widget-progress strong {
+      color: rgba(110, 231, 183, 0.85);
+      font-weight: 600;
+    }
+
+    /* Compact sign-in prompt (signed-out widget state) */
+    .widget-signin {
+      display: flex; flex-direction: column; gap: 8px;
+      margin-top: 8px;
+    }
+    .widget-signin-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      color: #fff;
+      font-family: inherit; font-size: 13px;
+      padding: 8px 12px; outline: none;
+    }
+    .widget-signin-input:focus {
+      border-color: rgba(110, 231, 183, 0.45);
+    }
+    .widget-signin-btn {
+      background: rgba(110, 231, 183, 0.1);
+      border: 1px solid rgba(110, 231, 183, 0.25);
+      color: #6ee7b7;
+      font-family: inherit; font-size: 12px; font-weight: 600;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s var(--spring), transform 0.15s var(--spring);
+    }
+    .widget-signin-btn:hover  { background: rgba(110, 231, 183, 0.18); }
+    .widget-signin-btn:active { transform: scale(0.97); }
+    .widget-signin-msg {
+      font-size: 11px; color: rgba(110, 231, 183, 0.85);
+      min-height: 12px;
+    }
+    .widget-signin-msg.error { color: rgba(239, 68, 68, 0.85); }
+
     /* Session card — intermediate "you picked Day N" view between tapping a
        day tile and opening the full logger. Mirrors the frosted-glass treatment
        of the day tiles with a mint accent. */
@@ -142,43 +273,14 @@
     .session-card-btn-secondary:hover  { background: rgba(255, 255, 255, 0.1); }
     .session-card-btn-secondary:active { transform: scale(0.97); }
 
-    /* Streak chip — fires above the day grid when ≥1-day streak exists.
-       No pill background; the flame + count carry the moment. Slow ember
-       pulse on the flame, sleek pop-in when the chip first renders. */
-    .streak-row {
-      display: flex; justify-content: center;
-      margin: 0 0 20px;
-      animation: streakPop 0.55s var(--spring) both;
-    }
-    @keyframes streakPop {
-      0%   { opacity: 0; transform: translateY(4px) scale(0.85); }
-      60%  { opacity: 1; transform: translateY(0)   scale(1.06); }
-      100% { opacity: 1; transform: translateY(0)   scale(1); }
-    }
-    .streak-chip {
-      display: inline-flex; align-items: baseline; gap: 8px;
-      padding: 4px 8px;
-      background: transparent;
-      border: none;
-      font-family: inherit;
-    }
+    /* Streak chip — used inside the session card. Static flame with a soft
+       drop-shadow glow; no infinite animation (was causing repaint flicker
+       on neighboring buttons in some browsers). Pop-in is the only motion. */
     .streak-emoji {
       font-size: 16px;
       line-height: 1;
       filter: drop-shadow(0 0 10px rgba(251, 146, 60, 0.55));
-      animation: streakGlow 2.4s ease-in-out infinite;
-      transform-origin: center;
-      align-self: center;
-    }
-    @keyframes streakGlow {
-      0%, 100% {
-        filter: drop-shadow(0 0 6px rgba(251, 146, 60, 0.4));
-        transform: scale(1);
-      }
-      50% {
-        filter: drop-shadow(0 0 16px rgba(251, 146, 60, 0.75));
-        transform: scale(1.08);
-      }
+      display: inline-block;
     }
     .streak-count {
       font-size: 15px; font-weight: 700;
@@ -190,15 +292,6 @@
       font-size: 13px; font-weight: 500;
       color: rgba(255, 255, 255, 0.55);
       letter-spacing: 0.01em;
-    }
-    .streak-chip.at-risk .streak-emoji {
-      filter: grayscale(0.7) opacity(0.55);
-      animation: none;
-    }
-    .streak-chip.at-risk .streak-count { color: rgba(251, 146, 60, 0.65); }
-    @media (prefers-reduced-motion: reduce) {
-      .streak-row { animation: none; }
-      .streak-emoji { animation: none; }
     }
 
     /* Day picker grid */
@@ -2025,6 +2118,14 @@
 </head>
 <body>
   <div class="wrap">
+    <!-- Widget-mode back-bar: only visible when view='today' is expanded -->
+    <button class="widget-back-bar" id="widget-back-bar" hidden>
+      <span class="widget-back-chevron">‹</span> Back to widget
+    </button>
+
+    <!-- Widget-mode card: only visible when view='today' is collapsed -->
+    <div class="widget-host" id="widget-host" hidden></div>
+
     <div class="app-header">
       <div class="home-divider"><span>TODAY'S SESSION<span id="demo-badge-slot"></span></span></div>
       <button class="app-gear" id="open-settings-sheet" aria-label="Settings" title="Settings">
@@ -2756,6 +2857,39 @@
       return (streak.lastDayNum % splitLen) + 1;
     }
 
+    // ── Widget helpers (used by view: 'today') ──────────────────────────────
+    // "Today's day" resolution order: a day already locked today → the
+    // recommended next-in-cycle day → fall back to day 1. Returns null when
+    // no split has been set up yet.
+    function getTodaysDayNum(split) {
+      if (!split || !split.length) return null;
+      const streak = readStreak();
+      if (streak && streak.lastDate === todayKey() && streak.lastDayNum) {
+        return Math.min(streak.lastDayNum, split.length);
+      }
+      const rec = getRecommendedDay(split.length);
+      return rec || 1;
+    }
+    // Counts logged sets vs total prescribed sets for a given day on today's
+    // date. Used by the widget's progress sub-line.
+    function getDayProgress(dayNum, day) {
+      if (!day || !Array.isArray(day.exercises)) return { logged: 0, total: 0 };
+      let total = 0;
+      for (const ex of day.exercises) total += parseInt(ex.sets, 10) || 0;
+      let logged = 0;
+      try {
+        const raw = localStorage.getItem(SESSION_PREFIX + todayKey() + '.' + dayNum);
+        if (raw) {
+          const session = JSON.parse(raw);
+          for (const exId of Object.keys(session || {})) {
+            const sets = (session[exId] && session[exId].sets) || [];
+            for (const s of sets) if (s && s.done) logged++;
+          }
+        }
+      } catch {}
+      return { logged, total };
+    }
+
     // ── Data layer ─────────────────────────────────────────────────────────
     function getSplit() {
       try {
@@ -3156,7 +3290,32 @@
 
     // ── Top-level view state ───────────────────────────────────────────────
     // 'picker' (grid) | 'logger' (selected day)
+    // Widget mode (view: 'today') wraps this with a compact card; tapping the
+    // card sets _widgetExpanded=true and falls through to the same flow below.
+    function toggleWidgetMode(showCollapsed, inWidgetMode) {
+      const widgetHost   = document.getElementById('widget-host');
+      const appHeader    = document.querySelector('.app-header');
+      const splitSection = document.getElementById('split-section');
+      const backBar      = document.getElementById('widget-back-bar');
+      const banner       = document.getElementById('demo-banner-slot');
+      // Inline style toggles — beats the `hidden` attribute which gets
+      // overridden by class-level `display: flex` declarations.
+      if (widgetHost)   widgetHost.hidden = !showCollapsed;
+      if (appHeader)    appHeader.style.display    = showCollapsed ? 'none' : '';
+      if (splitSection) splitSection.style.display = showCollapsed ? 'none' : '';
+      if (banner)       banner.style.display       = showCollapsed ? 'none' : '';
+      if (backBar)      backBar.hidden = !(inWidgetMode && _widgetExpanded);
+    }
+    function expandWidget()   { _widgetExpanded = true;  renderSplit(); }
+    function collapseWidget() { _widgetExpanded = false; renderSplit(); }
+
     function renderSplit() {
+      // Widget-mode collapsed: render the compact card and return early.
+      const inWidgetMode = (_SL_VIEW === 'today');
+      const showCollapsed = inWidgetMode && !_widgetExpanded;
+      toggleWidgetMode(showCollapsed, inWidgetMode);
+      if (showCollapsed) { renderWidget(); return; }
+
       const section = document.getElementById('split-section');
       const split = getSplit();
       const picked = getPickedDay();
@@ -3257,6 +3416,135 @@
       });
     }
 
+    // ── Widget renderer (view: 'today' collapsed) ───────────────────────────
+    function renderWidgetGearSvg() {
+      return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>`;
+    }
+    function renderWidgetGear() {
+      // Gear with sync-dot reuses the same .sync-dot class so updateSyncDot
+      // (now iterating all .sync-dot elements) updates this one too.
+      return `<button class="widget-gear" id="widget-open-settings" aria-label="Settings" title="Settings">
+        ${renderWidgetGearSvg()}
+        <span class="sync-dot local widget-sync-dot" aria-hidden="true"></span>
+      </button>`;
+    }
+
+    function renderWidget() {
+      const host = document.getElementById('widget-host');
+      if (!host) return;
+      const split = getSplit();
+
+      // 1. Signed-out, supabase configured → compact sign-in prompt.
+      if (supabase && !session && !inheritedFromParent) {
+        host.innerHTML = `
+          <div class="widget-card">
+            ${renderWidgetGear()}
+            <div class="widget-day-num">Sync</div>
+            <div class="widget-day-name">Sign in to sync your workouts</div>
+            <div class="widget-signin">
+              <input class="widget-signin-input" id="widget-email" type="email" placeholder="you@example.com" autocomplete="email" />
+              <button class="widget-signin-btn" id="widget-send-link">Send magic link</button>
+              <div class="widget-signin-msg" id="widget-signin-msg"></div>
+            </div>
+          </div>`;
+        wireWidgetGear();
+        const sendBtn = document.getElementById('widget-send-link');
+        if (sendBtn) sendBtn.addEventListener('click', async () => {
+          const email = (document.getElementById('widget-email').value || '').trim();
+          const msg = document.getElementById('widget-signin-msg');
+          if (!/.+@.+\..+/.test(email)) {
+            if (msg) { msg.textContent = 'Enter a valid email.'; msg.className = 'widget-signin-msg error'; }
+            return;
+          }
+          sendBtn.disabled = true;
+          if (msg) { msg.textContent = 'Sending magic link…'; msg.className = 'widget-signin-msg'; }
+          try {
+            const { error } = await supabase.auth.signInWithOtp({
+              email,
+              options: { emailRedirectTo: window.location.href.split('#')[0] },
+            });
+            if (error) throw error;
+            if (msg) msg.textContent = 'Check your email.';
+          } catch (e) {
+            if (msg) { msg.textContent = (e && e.message) || 'Send failed.'; msg.className = 'widget-signin-msg error'; }
+          } finally {
+            sendBtn.disabled = false;
+          }
+        });
+        if (typeof updateSyncDot === 'function') updateSyncDot();
+        return;
+      }
+
+      // 2. No split yet → compact welcome card.
+      if (!split || !Array.isArray(split) || !split.length) {
+        host.innerHTML = `
+          <button class="widget-card" id="widget-tap" aria-label="Build your training week">
+            ${renderWidgetGear()}
+            <div class="widget-day-num">Get started</div>
+            <div class="widget-day-name">Build your training week</div>
+            <div class="widget-tag-row">
+              <span class="day-tile-tag tag-light">START</span>
+            </div>
+            <div class="widget-progress">Tap to set up your split</div>
+          </button>`;
+        wireWidgetCardTap();
+        wireWidgetGear();
+        if (typeof updateSyncDot === 'function') updateSyncDot();
+        return;
+      }
+
+      // 3. Today's day card.
+      const dayNum = getTodaysDayNum(split);
+      const day = split[dayNum - 1];
+      const n = String(dayNum).padStart(2, '0');
+      const isRest = day && day.category === 'rest';
+      const completed = !!getCompleted(dayNum);
+      const exCount = (day && day.exercises || []).length;
+
+      let progressLine;
+      if (isRest) {
+        progressLine = '<div class="widget-progress">Rest day · recovery focus</div>';
+      } else if (completed) {
+        progressLine = '<div class="widget-progress"><strong>✓ Logged today</strong></div>';
+      } else {
+        const p = getDayProgress(dayNum, day);
+        if (p.total > 0 && p.logged > 0) {
+          progressLine = `<div class="widget-progress">${exCount} exercises · <strong>${p.logged}/${p.total}</strong> sets logged today</div>`;
+        } else {
+          progressLine = `<div class="widget-progress">${exCount} exercises · tap to log</div>`;
+        }
+      }
+
+      host.innerHTML = `
+        <button class="widget-card${completed ? ' completed' : ''}" id="widget-tap" aria-label="Open Day ${n}: ${esc(day.name)}">
+          ${renderWidgetGear()}
+          <div class="widget-day-num">Day ${n}</div>
+          <div class="widget-day-name">${esc(day.name)}</div>
+          <div class="widget-tag-row">
+            <span class="day-tile-tag ${tagClass(day.type)}">${tagLabel(day.type)}</span>
+          </div>
+          ${progressLine}
+        </button>`;
+      wireWidgetCardTap();
+      wireWidgetGear();
+      if (typeof updateSyncDot === 'function') updateSyncDot();
+    }
+
+    function wireWidgetCardTap() {
+      const tap = document.getElementById('widget-tap');
+      if (tap) tap.addEventListener('click', expandWidget);
+    }
+    function wireWidgetGear() {
+      const gear = document.getElementById('widget-open-settings');
+      if (gear) gear.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openSettingsSheet();
+      });
+    }
+
     function renderPicker(section, split) {
       const recommended = getRecommendedDay(split.length);
       const tiles = split.map((d, i) => {
@@ -3286,18 +3574,11 @@
         </div>`;
       }).join('');
 
-      const streak = computeStreak();
-      const streakChip = streak.count > 0
-        ? `<div class="streak-row">
-             <div class="streak-chip${streak.todayLogged ? '' : ' at-risk'}" title="${streak.todayLogged ? 'Logged today — streak alive' : 'Log today to keep your streak alive'}">
-               <span class="streak-emoji">🔥</span>
-               <span class="streak-count">${streak.count}</span>
-               <span class="streak-label">day streak${streak.todayLogged ? '' : ' · log today to keep'}</span>
-             </div>
-           </div>`
-        : '';
+      // Picker view doesn't show the streak chip anymore — the streak lives
+      // inside the session card after the user picks a day. Keeps the grid
+      // visually quiet and avoids the previous animation interactions that
+      // caused flicker on neighboring elements.
       section.innerHTML = `
-        ${streakChip}
         <div class="day-picker-grid">${tiles}</div>
         <div class="customize-link-row">
           <button class="customize-link" id="picker-customize-link">Customize split</button>
@@ -4957,6 +5238,9 @@
     }
     document.getElementById('open-settings-sheet').addEventListener('click', openSettingsSheet);
     document.getElementById('settings-close').addEventListener('click', closeSettingsSheet);
+    // Widget mode: back-bar collapses the expanded view back to the compact card.
+    const _widgetBackBar = document.getElementById('widget-back-bar');
+    if (_widgetBackBar) _widgetBackBar.addEventListener('click', collapseWidget);
     document.getElementById('settings-modal').addEventListener('click', e => {
       if (e.target.id === 'settings-modal') closeSettingsSheet();
     });
@@ -5388,6 +5672,8 @@
     const _SL_INJECTED_CLIENT  = (typeof __SPLITLOG_SUPABASE_CLIENT__ !== 'undefined') ? __SPLITLOG_SUPABASE_CLIENT__ : null;
     const _SL_INJECTED_USER_ID = (typeof __SPLITLOG_USER_ID__ !== 'undefined') ? __SPLITLOG_USER_ID__ : null;
     const _SL_MODE             = (typeof __SPLITLOG_MODE__ !== 'undefined') ? __SPLITLOG_MODE__ : 'standalone';
+    const _SL_VIEW             = ((typeof __SPLITLOG_VIEW__ !== 'undefined') && __SPLITLOG_VIEW__ === 'today') ? 'today' : 'full';
+    let   _widgetExpanded      = false; // toggled by tap on the widget card / back-bar
 
     // supabase, session, _pushTimer, _skipPush are hoisted near tryWrite —
     // they need to exist before the probeStorage() IIFE makes its first
@@ -5438,10 +5724,14 @@
     }
 
     function updateSyncDot() {
-      const dot = document.getElementById('sync-dot');
-      if (!dot) return;
-      if (DEMO_MODE) { dot.className = 'sync-dot hidden'; return; }
-      dot.className = 'sync-dot ' + syncState;
+      // Widget mode renders a second .sync-dot inside the widget gear. Iterate
+      // every dot so both stay in sync.
+      const dots = document.querySelectorAll('.sync-dot');
+      if (!dots.length) return;
+      dots.forEach(dot => {
+        if (DEMO_MODE) { dot.className = 'sync-dot hidden'; return; }
+        dot.className = 'sync-dot ' + syncState;
+      });
     }
 
     function schedulePush() {

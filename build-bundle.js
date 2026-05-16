@@ -10,6 +10,9 @@
  *     supabaseClient?: <parent's @supabase/supabase-js client>
  *     userId?: string
  *     mode?: 'embed' | 'standalone'   (default 'embed')
+ *     view?: 'full' | 'today'         (default 'full')
+ *       - 'full'  → 7-day grid + logger (standalone-equivalent UI)
+ *       - 'today' → compact "today's day" card; taps expand inline to full UI
  *
  * Pipeline:
  *   1. Read index.html.
@@ -284,6 +287,7 @@ function wrap(scopedCss, scopedJs, bodyMarkup) {
  *       supabaseClient: window.MyDashboard.supabase,  // optional
  *       userId: window.MyDashboard.userId,            // optional
  *       mode: 'embed',                                // 'embed' | 'standalone'
+ *       view: 'today',                                // 'full' | 'today'
  *     });
  *   </script>
  */
@@ -304,6 +308,10 @@ function wrap(scopedCss, scopedJs, bodyMarkup) {
       throw new Error('SplitLog.mount: pass an Element as the first argument.');
     }
     options = options || {};
+    if (options.view != null && options.view !== 'full' && options.view !== 'today') {
+      console.warn("SplitLog.mount: options.view must be 'full' or 'today'; got " + JSON.stringify(options.view) + " — falling back to 'full'.");
+      options.view = 'full';
+    }
     _mounted = true;
 
     // Force the root to be addressable by the scoped stylesheet.
@@ -326,6 +334,7 @@ function wrap(scopedCss, scopedJs, bodyMarkup) {
     const __SPLITLOG_SUPABASE_CLIENT__ = options.supabaseClient || null;
     const __SPLITLOG_USER_ID__         = options.userId || null;
     const __SPLITLOG_MODE__            = options.mode === 'standalone' ? 'standalone' : 'embed';
+    const __SPLITLOG_VIEW__            = options.view === 'today' ? 'today' : 'full';
 
     // Root-scoped DOM query helpers used by the transformed app code.
     const $root = rootEl;

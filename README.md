@@ -56,9 +56,32 @@ If you're building a dashboard or portal and want SplitLog as one panel inside a
     supabaseClient: window.MyDashboard.supabase,  // optional — uses parent's session
     userId: window.MyDashboard.userId,            // optional — explicit user id
     mode: 'embed',                                // 'embed' (default) | 'standalone'
+    view: 'full',                                 // 'full' (default) | 'today'
   });
 </script>
 ```
+
+### Compact widget mode (`view: 'today'`)
+
+For dashboards where SplitLog is one panel among many, pass `view: 'today'`. The bundle renders a single compact card showing the day the user should train today (resolved from the existing streak rotation logic), the day's type tag, and progress (`{logged}/{total} sets logged today`). Tapping the card expands the full 7-day grid + logger inline, with a "‹ Back to widget" affordance to collapse.
+
+```js
+SplitLog.mount(document.getElementById('splitlog-root'), {
+  supabaseClient: window.MyDashboard.supabase,
+  userId: window.MyDashboard.userId,
+  view: 'today',
+});
+```
+
+What the compact card shows:
+
+- **Has a split, signed in** → `DAY 01 · Push heavy · HEAVY · 6 exercises · 3/22 sets logged today`
+- **Rest day** → `DAY 07 · Full rest · REST · Rest day · recovery focus`
+- **No split yet** → `Get started · Build your training week · tap to set up your split`
+- **Configured but signed out** → compact email + magic-link prompt inline
+- **Sync errors** → gear's sync dot turns amber/red; the widget itself stays usable
+
+The gear icon stays accessible in the card's top-right corner; the sync dot lives on the gear (gray / white / amber / mint / red).
 
 **What the bundle does**
 - Defines exactly one global: `window.SplitLog` with a single `mount(rootEl, options)` method.
