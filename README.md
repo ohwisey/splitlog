@@ -19,6 +19,7 @@ A single-file workout split tracker. Runs in your browser. Your data stays on yo
 - **Add custom exercises** if yours isn't on the list
 - **Submitted workouts are locked** — delete to edit, no accidental data corruption
 - **Export / Import your data as JSON** for backup
+- **Optional cloud sync** (Supabase) — sign in once, your workouts follow you across devices
 
 ## Three ways to use it
 
@@ -45,9 +46,84 @@ Click **Fork** at the top of this repo. Enable Pages in your fork's Settings (Pa
 
 ## Where your data lives
 
-Everything is in `localStorage` under the `splitlog.*` namespace. Nothing leaves your device. There are no servers, no analytics, no tracking, no fetch calls to external services. The app is a single HTML file with inline JavaScript and CSS — open the source and grep for `fetch` if you want to verify.
+By default, everything is in `localStorage` under the `splitlog.*` namespace. Nothing leaves your device. No analytics, no tracking, no fetch calls.
 
-If you want to back up: tap **Export data** at the bottom of the page → JSON file downloads. To restore on a new device / browser: **Import data** → pick the file.
+If you want backup: **Settings → Export data** downloads a JSON file. To restore on a new browser: **Settings → Import data**.
+
+## Optional cloud sync (Supabase)
+
+If you want your workouts to follow you across devices (laptop ↔ phone), you can wire SplitLog to your own Supabase project. Local writes always go to localStorage first; the cloud push is best-effort and silently falls back to local on network failure.
+
+### What you need
+
+A Supabase project with one table:
+
+```sql
+create table app_data (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  app_slug text not null,
+  key text not null,
+  value jsonb not null,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, app_slug, key)
+);
+
+alter table app_data enable row level security;
+
+create policy "users read own data"
+  on app_data for select using (auth.uid() = user_id);
+
+create policy "users write own data"
+  on app_data for insert with check (auth.uid() = user_id);
+
+create policy "users update own data"
+  on app_data for update using (auth.uid() = user_id);
+```
+
+Email magic-link auth is enabled by default in Supabase — no extra config needed.
+
+### Connecting SplitLog
+
+Two paths:
+
+**A. Standalone (paste-it-yourself):**
+1. Open SplitLog → tap the **gear icon** → see the **Sync** section
+2. Paste your project URL (Supabase → Project Settings → API → Project URL)
+3. Paste your **anon public key** (same page — the `anon` `public` key, NOT the `service_role` key)
+4. Enter your email, tap **Send magic link**, click the link in your inbox
+5. The sync dot on the gear turns mint when synced
+
+**B. Inherited from a parent dashboard:**
+If you opened SplitLog from a dashboard tile (using `window.open()`) and the dashboard has set:
+```js
+window.ohwisey = {
+  supabaseUrl: '<your URL>',
+  supabaseAnonKey: '<your anon key>',
+  session: <current Supabase session object>,
+};
+```
+SplitLog reads `window.opener?.ohwisey` and inherits both the config and the active session. No paste needed, no separate sign-in.
+
+### Sync model (v1)
+
+- **Offline-first.** Every change writes to localStorage instantly. Cloud push is debounced (~1s) and silent on failure.
+- **Cloud wins on first sign-in.** If both local and cloud have data, cloud replaces local. Empty cloud accepts your local data.
+- **Last-write-wins.** No conflict resolution beyond that. Two devices editing simultaneously: the most recent push wins. Pull-from-cloud is manual via the Sync section.
+- **Auth tokens never sync.** Each device signs in independently; the access/refresh tokens stay in that device's storage.
+
+### Sync status
+
+The colored dot on the gear icon:
+
+- **gray** — local only (no Supabase configured)
+- **white** — configured but not signed in
+- **amber** — syncing
+- **mint** — synced
+- **red** — error (network, auth, or schema)
+
+### Reset and sync
+
+**Settings → Reset all data** clears local data AND pushes the empty state to the cloud, so other devices won't restore old data on next sync. Your Supabase URL/key/session aren't touched by Reset — use **Forget config** in the Sync section if you want to remove those.
 
 ## License
 

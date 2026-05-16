@@ -583,6 +583,103 @@
     }
     .app-gear:active { transform: scale(0.97); }
     .app-gear svg { display: block; }
+    .app-gear { position: relative; }
+    .sync-dot {
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      border: 2px solid #000;
+      pointer-events: none;
+      transition: background 0.3s var(--spring);
+    }
+    .sync-dot.synced     { background: #6ee7b7; }
+    .sync-dot.syncing    { background: #fbbf24; }
+    .sync-dot.error      { background: #ef4444; }
+    .sync-dot.configured { background: rgba(255, 255, 255, 0.5); }
+    .sync-dot.hidden     { display: none; }
+
+    /* Sync section inside settings sheet */
+    .sync-section {
+      margin: 16px 0 0;
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .sync-head {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .sync-head-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      flex-shrink: 0;
+    }
+    .sync-head-dot.synced     { background: #6ee7b7; }
+    .sync-head-dot.syncing    { background: #fbbf24; }
+    .sync-head-dot.error      { background: #ef4444; }
+    .sync-head-dot.configured { background: rgba(255, 255, 255, 0.5); }
+    .sync-head-title {
+      font-size: 14px; font-weight: 600; color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .sync-detail {
+      font-size: 12px; color: rgba(255, 255, 255, 0.5);
+      line-height: 1.4;
+      margin: 0 0 12px;
+    }
+    .sync-actions {
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .sync-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      color: #fff;
+      font-family: inherit; font-size: 13px;
+      padding: 10px 12px; outline: none;
+      transition: border-color 0.2s var(--spring), background 0.2s var(--spring);
+    }
+    .sync-input:focus {
+      border-color: rgba(110, 231, 183, 0.45);
+      background: rgba(110, 231, 183, 0.04);
+    }
+    .sync-input::placeholder { color: rgba(255, 255, 255, 0.3); }
+    .sync-btn-row {
+      display: flex; gap: 8px;
+    }
+    .sync-btn {
+      flex: 1;
+      background: rgba(110, 231, 183, 0.1);
+      border: 1px solid rgba(110, 231, 183, 0.25);
+      color: #6ee7b7;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s var(--spring), transform 0.15s var(--spring);
+    }
+    .sync-btn:hover { background: rgba(110, 231, 183, 0.16); }
+    .sync-btn:active { transform: scale(0.97); }
+    .sync-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .sync-btn.secondary {
+      background: transparent;
+      color: rgba(255, 255, 255, 0.6);
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .sync-btn.secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    .sync-msg {
+      font-size: 12px; color: rgba(110, 231, 183, 0.85);
+      text-align: center; margin-top: 8px;
+      min-height: 14px; line-height: 1.4;
+    }
+    .sync-msg.error { color: rgba(239, 68, 68, 0.85); }
 
     /* Quiet "Customize split" text-link — sits below the day-picker grid */
     .customize-link-row {
@@ -1778,6 +1875,7 @@
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
         </svg>
+        <span class="sync-dot local" id="sync-dot" aria-hidden="true"></span>
       </button>
     </div>
     <div id="demo-banner-slot"></div>
@@ -1796,6 +1894,9 @@
     <div class="modal-sheet" id="settings-sheet">
       <div class="modal-title">Settings</div>
       <div class="modal-sub">Manage your data and customize your split.</div>
+      <!-- Sync section (only visible when not in DEMO_MODE; rendered by JS) -->
+      <div class="sync-section" id="sync-section" hidden></div>
+
       <div class="settings-list">
         <button class="settings-row" id="settings-customize">
           <span class="settings-row-label">
@@ -1893,7 +1994,11 @@
     // failure surfaces visibly instead of silently dropping the user's data.
     let _storageWarned = false;
     function tryWrite(key, value) {
-      try { localStorage.setItem(key, value); return true; }
+      try {
+        localStorage.setItem(key, value);
+        if (key.startsWith(NS) && typeof schedulePush === 'function') schedulePush();
+        return true;
+      }
       catch (e) {
         console.warn('tryWrite failed for', key, '·', e && e.message);
         if (!_storageWarned) {
@@ -1904,7 +2009,11 @@
       }
     }
     function tryRemove(key) {
-      try { localStorage.removeItem(key); return true; } catch { return false; }
+      try {
+        localStorage.removeItem(key);
+        if (key.startsWith(NS) && typeof schedulePush === 'function') schedulePush();
+        return true;
+      } catch { return false; }
     }
     function showStorageBanner() {
       let el = document.getElementById('storage-banner');
@@ -4515,6 +4624,8 @@
       // Refresh version label (single source of truth = APP_VERSION constant).
       const v = document.getElementById('settings-version');
       if (v) v.textContent = APP_VERSION;
+      // Re-render sync section so status reflects current state on every open.
+      if (typeof renderSyncSection === 'function') renderSyncSection();
     }
     function closeSettingsSheet() {
       document.getElementById('settings-modal').classList.remove('open');
@@ -4556,6 +4667,8 @@
       clearPickedDay();
       if (DEMO_MODE) seedDemo();
       initDataVersion();
+      // Push the cleared state to cloud so other devices don't restore old data.
+      if (typeof schedulePush === 'function') schedulePush();
       closeSettingsSheet();
       renderSplit();
     });
@@ -4919,6 +5032,423 @@
     // hero in renderSplit() drives the user into the customize wizard from
     // scratch. The demo path has already saved DEMO_SPLIT via seedDemo above.
     renderSplit();
+
+    // ── Supabase sync ──────────────────────────────────────────────────────
+    // Offline-first cross-device sync. Local writes always go to
+    // localStorage immediately; cloud is best-effort. Network failure
+    // silently falls back to local. Last-write-wins for v1.
+    //
+    // Auth resolution (priority):
+    //   1. window.opener?.ohwisey (parent dashboard exposed config + session)
+    //   2. NS-stored Supabase URL+anon-key (own config from past sign-in)
+    //   3. Local-only mode (no sync, settings shows sign-in UI)
+    //
+    // Demo mode (DEMO_MODE=true) skips sync entirely.
+    const SUPABASE_URL_KEY  = NS + 'supabaseUrl';
+    const SUPABASE_ANON_KEY = NS + 'supabaseAnonKey';
+    const SUPABASE_AUTH_KEY = NS + 'auth';
+    const SUPABASE_TABLE    = 'app_data';
+    const SUPABASE_APP_SLUG = 'splitlog';
+    const SUPABASE_STATE_KEY = 'state';
+    // Keys that survive an applyDataPayload wipe and never upload — Supabase
+    // config + auth tokens (per-device, sensitive — never sync to cloud).
+    const SYNC_PROTECTED_KEYS = new Set([SUPABASE_URL_KEY, SUPABASE_ANON_KEY, SUPABASE_AUTH_KEY]);
+
+    let supabase = null;
+    let session = null;
+    let inheritedFromParent = false;
+    let syncState = 'local'; // local | configured | syncing | synced | error
+    let _pushTimer = null;
+    let _skipPush = false;
+    let _sdkLoadPromise = null;
+
+    function loadSupabaseSdk() {
+      if (_sdkLoadPromise) return _sdkLoadPromise;
+      _sdkLoadPromise = import('https://esm.sh/@supabase/supabase-js@2')
+        .then(mod => mod.createClient)
+        .catch(e => {
+          console.warn('Supabase SDK load failed:', e && e.message);
+          _sdkLoadPromise = null;
+          return null;
+        });
+      return _sdkLoadPromise;
+    }
+
+    function getInheritedConfig() {
+      try {
+        const parent = window.opener && window.opener.ohwisey;
+        if (parent && parent.supabaseUrl && parent.supabaseAnonKey) {
+          return {
+            url: parent.supabaseUrl,
+            key: parent.supabaseAnonKey,
+            session: parent.session || null,
+          };
+        }
+      } catch { /* cross-origin denial — silent */ }
+      return null;
+    }
+
+    function getStoredConfig() {
+      const url = localStorage.getItem(SUPABASE_URL_KEY);
+      const key = localStorage.getItem(SUPABASE_ANON_KEY);
+      if (url && key) return { url, key };
+      return null;
+    }
+
+    function setSyncState(s) {
+      syncState = s;
+      updateSyncDot();
+      if (document.getElementById('settings-modal').classList.contains('open')) {
+        renderSyncSection();
+      }
+    }
+
+    function updateSyncDot() {
+      const dot = document.getElementById('sync-dot');
+      if (!dot) return;
+      if (DEMO_MODE) { dot.className = 'sync-dot hidden'; return; }
+      dot.className = 'sync-dot ' + syncState;
+    }
+
+    function schedulePush() {
+      if (DEMO_MODE) return;
+      if (_skipPush) return;
+      if (!supabase || !session) return;
+      if (_pushTimer) clearTimeout(_pushTimer);
+      _pushTimer = setTimeout(() => {
+        _pushTimer = null;
+        cloudPush();
+      }, 1000);
+    }
+
+    async function cloudPush() {
+      if (!supabase || !session) return;
+      setSyncState('syncing');
+      try {
+        // Strip auth/config keys — never upload tokens or per-device config.
+        const all = collectAllData();
+        const data = {};
+        for (const k of Object.keys(all)) {
+          if (!SYNC_PROTECTED_KEYS.has(k)) data[k] = all[k];
+        }
+        const { error } = await supabase
+          .from(SUPABASE_TABLE)
+          .upsert({
+            user_id: session.user.id,
+            app_slug: SUPABASE_APP_SLUG,
+            key: SUPABASE_STATE_KEY,
+            value: data,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'user_id,app_slug,key' });
+        if (error) throw error;
+        setSyncState('synced');
+      } catch (e) {
+        console.warn('cloudPush failed:', e && e.message);
+        setSyncState('error');
+      }
+    }
+
+    async function cloudPull() {
+      if (!supabase || !session) return null;
+      try {
+        const { data, error } = await supabase
+          .from(SUPABASE_TABLE)
+          .select('value')
+          .eq('user_id', session.user.id)
+          .eq('app_slug', SUPABASE_APP_SLUG)
+          .eq('key', SUPABASE_STATE_KEY)
+          .maybeSingle();
+        if (error) throw error;
+        return (data && data.value) || null;
+      } catch (e) {
+        console.warn('cloudPull failed:', e && e.message);
+        return null;
+      }
+    }
+
+    function applyDataPayload(payload) {
+      if (!payload || typeof payload !== 'object') return;
+      _skipPush = true;
+      try {
+        // Wipe existing NS keys (except protected: config + auth session)
+        const toRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith(NS) && !SYNC_PROTECTED_KEYS.has(k)) {
+            toRemove.push(k);
+          }
+        }
+        toRemove.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+        // Apply incoming (also skip protected keys — never restore stale auth/config)
+        for (const k of Object.keys(payload)) {
+          if (typeof k === 'string' && k.startsWith(NS) && !SYNC_PROTECTED_KEYS.has(k)) {
+            try { localStorage.setItem(k, payload[k]); } catch {}
+          }
+        }
+      } finally {
+        _skipPush = false;
+      }
+    }
+
+    async function initSync() {
+      if (DEMO_MODE) {
+        updateSyncDot();
+        return;
+      }
+
+      // 1. Try parent dashboard
+      let config = getInheritedConfig();
+      if (config) inheritedFromParent = true;
+
+      // 2. Try stored config
+      if (!config) config = getStoredConfig();
+
+      // No config → local-only
+      if (!config) {
+        setSyncState('local');
+        return;
+      }
+
+      // Show dot immediately while SDK loads
+      setSyncState('configured');
+
+      const createClient = await loadSupabaseSdk();
+      if (!createClient) { setSyncState('error'); return; }
+
+      try {
+        supabase = createClient(config.url, config.key, {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            storageKey: SUPABASE_AUTH_KEY,
+          },
+        });
+      } catch (e) {
+        console.warn('Supabase init failed:', e && e.message);
+        setSyncState('error');
+        return;
+      }
+
+      // Inherit session from parent if available
+      if (config.session && config.session.access_token && config.session.refresh_token) {
+        try {
+          await supabase.auth.setSession({
+            access_token: config.session.access_token,
+            refresh_token: config.session.refresh_token,
+          });
+        } catch (e) {
+          console.warn('Inherited session apply failed:', e && e.message);
+        }
+      }
+
+      // Read current session (handles persisted or magic-link redirect)
+      try {
+        const { data } = await supabase.auth.getSession();
+        session = (data && data.session) || null;
+      } catch {}
+
+      // Subscribe to future auth changes (sign-in, sign-out, token refresh)
+      supabase.auth.onAuthStateChange((event, newSession) => {
+        const hadSession = !!session;
+        session = newSession || null;
+        if (!hadSession && session) {
+          // First sign-in this load — try pull, fall back to push
+          firstSignInSync();
+        } else if (hadSession && !session) {
+          // Signed out
+          setSyncState('configured');
+        }
+        if (document.getElementById('settings-modal').classList.contains('open')) {
+          renderSyncSection();
+        }
+      });
+
+      if (!session) {
+        setSyncState('configured');
+        return;
+      }
+
+      // Signed in — pull, adopt if non-empty, else push local
+      await firstSignInSync();
+
+      // Expose to other ohwisey standalones that might be opened from here
+      try {
+        window.ohwisey = {
+          supabaseUrl: config.url,
+          supabaseAnonKey: config.key,
+          get session() { return session; },
+        };
+      } catch {}
+    }
+
+    async function firstSignInSync() {
+      if (!supabase || !session) return;
+      setSyncState('syncing');
+      const cloudData = await cloudPull();
+      if (cloudData && Object.keys(cloudData).length > 0) {
+        applyDataPayload(cloudData);
+        renderSplit();
+        setSyncState('synced');
+      } else {
+        // Cloud empty — push local up
+        await cloudPush();
+      }
+    }
+
+    // ── Sync settings section (inside settings sheet) ───────────────────────
+    function syncStatusLabel() {
+      if (DEMO_MODE) return 'Demo (sync disabled)';
+      switch (syncState) {
+        case 'local':      return 'Local only';
+        case 'configured': return 'Not signed in';
+        case 'syncing':    return 'Syncing…';
+        case 'synced':     return 'Synced';
+        case 'error':      return 'Sync error';
+      }
+      return 'Unknown';
+    }
+
+    function renderSyncSection() {
+      const host = document.getElementById('sync-section');
+      if (!host) return;
+      if (DEMO_MODE) { host.hidden = true; return; }
+      host.hidden = false;
+
+      const dotCls = 'sync-head-dot ' + (syncState === 'local' ? '' : syncState);
+      const title = `
+        <div class="sync-head">
+          <span class="${dotCls}"></span>
+          <span class="sync-head-title">Sync</span>
+        </div>`;
+
+      let detail = '';
+      let actions = '';
+
+      if (inheritedFromParent && session) {
+        detail = `Signed in as <strong>${esc(session.user && session.user.email || 'user')}</strong> via your dashboard. Workouts sync across devices automatically.`;
+      } else if (inheritedFromParent && !session) {
+        detail = `Dashboard configured Supabase but you're not signed in there. Sign in from the dashboard and reopen.`;
+      } else if (syncState === 'local') {
+        detail = `Sync isn't set up. Paste your Supabase project URL and anon key to enable cross-device sync. Find these in Supabase › Project Settings › API.`;
+        actions = `
+          <div class="sync-actions">
+            <input class="sync-input" id="sync-url-input" type="text" autocomplete="off" placeholder="https://your-project.supabase.co" />
+            <input class="sync-input" id="sync-key-input" type="text" autocomplete="off" placeholder="anon public key" />
+            <div class="sync-btn-row">
+              <button class="sync-btn" id="sync-save-config">Save &amp; continue</button>
+            </div>
+          </div>`;
+      } else if (syncState === 'configured' && !session) {
+        detail = `Supabase is configured. Sign in with a magic link to sync this device.`;
+        actions = `
+          <div class="sync-actions">
+            <input class="sync-input" id="sync-email-input" type="email" autocomplete="email" placeholder="you@example.com" />
+            <div class="sync-btn-row">
+              <button class="sync-btn" id="sync-send-link">Send magic link</button>
+              <button class="sync-btn secondary" id="sync-forget-config">Forget config</button>
+            </div>
+          </div>`;
+      } else if (session) {
+        detail = `Signed in as <strong>${esc(session.user && session.user.email || 'user')}</strong>. Workouts sync to <strong>app_data → splitlog</strong>.`;
+        actions = `
+          <div class="sync-actions">
+            <div class="sync-btn-row">
+              <button class="sync-btn secondary" id="sync-pull-now">Pull from cloud</button>
+              <button class="sync-btn secondary" id="sync-sign-out">Sign out</button>
+            </div>
+          </div>`;
+      } else if (syncState === 'error') {
+        detail = `Sync hit an error. Check the network, your URL/key, or try forgetting and re-pasting.`;
+        actions = `
+          <div class="sync-actions">
+            <div class="sync-btn-row">
+              <button class="sync-btn secondary" id="sync-forget-config">Forget config</button>
+            </div>
+          </div>`;
+      }
+
+      host.innerHTML = `${title}<div class="sync-detail">${detail}</div>${actions}<div class="sync-msg" id="sync-msg"></div>`;
+
+      // Wire actions
+      const saveBtn = document.getElementById('sync-save-config');
+      if (saveBtn) saveBtn.addEventListener('click', async () => {
+        const url = (document.getElementById('sync-url-input').value || '').trim();
+        const key = (document.getElementById('sync-key-input').value || '').trim();
+        if (!/^https?:\/\/.+/i.test(url) || key.length < 20) {
+          showSyncMsg('Need a valid URL and an anon key.', true);
+          return;
+        }
+        localStorage.setItem(SUPABASE_URL_KEY, url);
+        localStorage.setItem(SUPABASE_ANON_KEY, key);
+        showSyncMsg('Saved. Loading…');
+        await initSync();
+        renderSyncSection();
+      });
+      const sendBtn = document.getElementById('sync-send-link');
+      if (sendBtn) sendBtn.addEventListener('click', async () => {
+        const email = (document.getElementById('sync-email-input').value || '').trim();
+        if (!/.+@.+\..+/.test(email)) { showSyncMsg('Enter a valid email.', true); return; }
+        sendBtn.disabled = true;
+        showSyncMsg('Sending magic link…');
+        try {
+          const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: { emailRedirectTo: window.location.href.split('#')[0] },
+          });
+          if (error) throw error;
+          showSyncMsg('Check your email for the sign-in link.');
+        } catch (e) {
+          showSyncMsg(e && e.message || 'Send failed.', true);
+        } finally {
+          sendBtn.disabled = false;
+        }
+      });
+      const forgetBtn = document.getElementById('sync-forget-config');
+      if (forgetBtn) forgetBtn.addEventListener('click', () => {
+        if (!confirm('Forget Supabase config? You can paste it again later. Your local workouts stay.')) return;
+        localStorage.removeItem(SUPABASE_URL_KEY);
+        localStorage.removeItem(SUPABASE_ANON_KEY);
+        supabase = null; session = null; inheritedFromParent = false;
+        setSyncState('local');
+        renderSyncSection();
+      });
+      const pullBtn = document.getElementById('sync-pull-now');
+      if (pullBtn) pullBtn.addEventListener('click', async () => {
+        pullBtn.disabled = true;
+        showSyncMsg('Pulling latest from cloud…');
+        setSyncState('syncing');
+        const cloudData = await cloudPull();
+        if (cloudData && Object.keys(cloudData).length > 0) {
+          applyDataPayload(cloudData);
+          renderSplit();
+          setSyncState('synced');
+          showSyncMsg('Up to date.');
+        } else {
+          setSyncState('synced');
+          showSyncMsg('Cloud is empty.');
+        }
+        pullBtn.disabled = false;
+      });
+      const signOutBtn = document.getElementById('sync-sign-out');
+      if (signOutBtn) signOutBtn.addEventListener('click', async () => {
+        signOutBtn.disabled = true;
+        try {
+          await supabase.auth.signOut();
+        } catch {}
+        signOutBtn.disabled = false;
+      });
+    }
+
+    function showSyncMsg(text, isError) {
+      const el = document.getElementById('sync-msg');
+      if (!el) return;
+      el.textContent = text;
+      el.className = 'sync-msg' + (isError ? ' error' : '');
+      setTimeout(() => { if (el.textContent === text) el.textContent = ''; }, 5000);
+    }
+
+    if (!DEMO_MODE) initSync();
   </script>
 </body>
 </html>
