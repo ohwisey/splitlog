@@ -100,10 +100,27 @@
     .session-card-streak {
       display: inline-flex; align-items: baseline; gap: 6px;
       margin: 0 0 20px;
+      font-size: 15px; font-weight: 500;
+      color: #6ee7b7;
+      animation: streakFlip 0.5s var(--spring) 0.25s both;
     }
-    .session-card-streak .streak-emoji { font-size: 14px; }
-    .session-card-streak .streak-count { font-size: 14px; }
-    .session-card-streak .streak-label { font-size: 13px; }
+    @keyframes streakFlip {
+      0%   { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+    .session-card-streak .streak-emoji {
+      font-size: 14px;
+      filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.5));
+      animation: none;
+    }
+    .session-card-streak .streak-count {
+      font-size: 15px; font-weight: 600;
+      color: #6ee7b7;
+    }
+    .session-card-streak .streak-label {
+      font-size: 14px; font-weight: 500;
+      color: rgba(110, 231, 183, 0.75);
+    }
     .session-card-actions {
       display: flex; gap: 12px;
     }
@@ -238,6 +255,22 @@
       border-color: rgba(110, 231, 183, 0.28);
       background: rgba(110, 231, 183, 0.05);
     }
+    .day-tile.recommended {
+      border-color: rgba(110, 231, 183, 0.3);
+      background: rgba(110, 231, 183, 0.04);
+    }
+    /* Giant ✓ check that fades in inside the tile during the selecting phase */
+    .day-tile-check {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 56px; color: #6ee7b7;
+      opacity: 0;
+      transition: opacity 0.3s 0.15s var(--spring);
+      pointer-events: none;
+      z-index: 3;
+      filter: drop-shadow(0 0 16px rgba(110, 231, 183, 0.55));
+    }
+    .day-tile.selecting .day-tile-check { opacity: 1; }
     .day-tile-edit {
       position: absolute;
       top: 12px; right: 12px;
@@ -2103,7 +2136,7 @@
     const SESSION_PREFIX   = NS + 'session.';   // .{date}.{dayNum} -> { [exId]: { sets: [{wt,reps,done,missed}] } }
     const HISTORY_PREFIX   = NS + 'history.';   // .{exId} -> { date, sets, topWeight, topReps }
     const HISTLOG_PREFIX   = NS + 'histlog.';   // .{exId} -> [{date, topWeight, topReps, volume}, ...]
-    const TAPPED_PREFIX    = NS + 'tapped.';    // .{date} -> '1' — set when a day card is tapped, counts toward streak
+    const STREAK_KEY       = NS + 'streak';      // JSON { count, lastDate (YYYY-MM-DD), lastDayNum } — see lockDayIn()
     const COMPLETED_PREFIX = NS + 'completed.'; // .{date}.{dayNum} -> { date, snapshot }
     const CARDIO_PREFIX    = NS + 'cardio.';    // .{date}.{dayNum} -> { done, type, customName, totalMinutes, zones }
     const CUSTOM_EX_KEY    = NS + 'customEx';   // array of {id,name,sets,reps,category,group}
@@ -2669,39 +2702,58 @@
     }
 
     // ── Streak ─────────────────────────────────────────────────────────────
-    // A date counts as "active" if the user logged anything that day —
-    // a completed workout, a cardio entry, or any in-progress set. Tapping
-    // a day card without logging anything does NOT count (no gaming the
-    // streak). At midnight, an unlogged day automatically breaks the chain.
-    function getActiveDates() {
-      const dates = new Set();
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (!k) continue;
-        let date = null;
-        if      (k.startsWith(TAPPED_PREFIX))    date = k.slice(TAPPED_PREFIX.length);
-        else if (k.startsWith(COMPLETED_PREFIX)) date = k.slice(COMPLETED_PREFIX.length).split('.')[0];
-        else if (k.startsWith(CARDIO_PREFIX))    date = k.slice(CARDIO_PREFIX.length).split('.')[0];
-        else if (k.startsWith(SESSION_PREFIX))   date = k.slice(SESSION_PREFIX.length).split('.')[0];
-        if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) dates.add(date);
+    // Counter-based streak: a single JSON record holds { count, lastDate,
+    // lastDayNum }. Tapping any day card is the "lock-in" event that bumps
+    // the counter. Rules:
+    //   • first lock-in ever            → count = 1
+    //   • same-day re-lock              → no change (re-tapping doesn't game it)
+    //   • gap of 1 or 2 days since last → count + 1  (forgiving — one missed
+    //                                                  day doesn't reset the run)
+    //   • gap of 3+ days                → reset to 1
+    // computeStreak() also expires the count past a 2-day gap so a stale
+    // counter doesn't pretend the streak is still alive.
+    function readStreak() {
+      try { return JSON.parse(localStorage.getItem(STREAK_KEY)); } catch { return null; }
+    }
+    function parseYMDLocal(ymd) {
+      const [y, m, d] = ymd.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+    function daysBetween(a, b) {
+      return Math.round((parseYMDLocal(a) - parseYMDLocal(b)) / 86400000);
+    }
+    function lockDayIn(dayNum) {
+      const today = todayKey();
+      let streak = readStreak();
+      if (!streak) {
+        streak = { count: 1, lastDate: today, lastDayNum: dayNum };
+      } else if (streak.lastDate === today) {
+        // Same-day re-pick: keep count, update last picked day for recommendations.
+        streak.lastDayNum = dayNum;
+      } else {
+        const gap = daysBetween(today, streak.lastDate);
+        streak.count = gap > 0 && gap <= 2 ? (streak.count + 1) : 1;
+        streak.lastDate = today;
+        streak.lastDayNum = dayNum;
       }
-      return dates;
+      tryWrite(STREAK_KEY, JSON.stringify(streak));
+      return streak.count;
     }
     function computeStreak() {
+      const streak = readStreak();
+      if (!streak || !streak.lastDate) return { count: 0, todayLogged: false };
       const today = todayKey();
-      const active = getActiveDates();
-      const todayLogged = active.has(today);
-      // If today isn't logged yet, the chain is still "alive" if yesterday was
-      // logged — count from yesterday backwards. Once midnight rolls over to a
-      // new today with no activity, the prior day stops counting (the unlogged
-      // day becomes a gap) and the streak goes to 0.
-      let cursor = todayLogged ? today : shiftDate(today, -1);
-      let count = 0;
-      while (active.has(cursor)) {
-        count++;
-        cursor = shiftDate(cursor, -1);
-      }
-      return { count, todayLogged };
+      const gap = daysBetween(today, streak.lastDate);
+      // Stale: lastDate is more than 2 days ago → streak has expired.
+      if (gap > 2) return { count: 0, todayLogged: false };
+      return { count: streak.count, todayLogged: gap === 0 };
+    }
+    function getRecommendedDay(splitLen) {
+      const streak = readStreak();
+      if (!streak || !streak.lastDayNum || !splitLen) return null;
+      // If today is already locked, no recommendation — they've chosen.
+      if (streak.lastDate === todayKey()) return null;
+      return (streak.lastDayNum % splitLen) + 1;
     }
 
     // ── Data layer ─────────────────────────────────────────────────────────
@@ -3206,23 +3258,29 @@
     }
 
     function renderPicker(section, split) {
+      const recommended = getRecommendedDay(split.length);
       const tiles = split.map((d, i) => {
         const n = String(i + 1).padStart(2, '0');
         const dayNum = i + 1;
         const exCount = (d.exercises || []).length;
         const completed = !!getCompleted(dayNum);
+        const isRec = recommended === dayNum;
         const exNote = d.category === 'rest'
           ? ''
-          : `<div class="day-tile-count">${completed ? '✓ logged today' : (exCount ? exCount + ' exercises' : 'Tap to set up')}</div>`;
+          : `<div class="day-tile-count">${completed ? '✓ logged today' : (isRec ? 'Next up · tap to lock in' : (exCount ? exCount + ' exercises' : 'Tap to set up'))}</div>`;
         const editBtn = d.category === 'rest'
           ? ''
           : `<button class="day-tile-edit" data-edit-day="${dayNum}" title="Edit exercises &amp; weights" aria-label="Edit day ${n}">✎</button>`;
+        const tileClass = ['day-tile'];
+        if (completed) tileClass.push('completed');
+        if (isRec)     tileClass.push('recommended');
         return `<div class="day-tile-wrap" style="position:relative;">
-          <button class="day-tile${completed ? ' completed' : ''}" data-day="${dayNum}" aria-label="Day ${n}: ${esc(d.name)}">
+          <button class="${tileClass.join(' ')}" data-day="${dayNum}" aria-label="Day ${n}: ${esc(d.name)}">
             <div class="day-tile-num">Day ${n}</div>
             <div class="day-tile-name">${esc(d.name)}</div>
             <span class="day-tile-tag ${tagClass(d.type)}">${tagLabel(d.type)}</span>
             ${exNote}
+            <div class="day-tile-check" aria-hidden="true">✓</div>
           </button>
           ${editBtn}
         </div>`;
@@ -3259,28 +3317,32 @@
 
     function onTileTap(btn, section) {
       const dayNum = parseInt(btn.dataset.day, 10);
-      const split = getSplit();
-      const day = split[dayNum - 1];
 
-      // Streak: tapping any day card on a given date counts that date toward
-      // the streak. Idempotent — re-taps, editing, or tapping a different
-      // day card later that same day all map to the same key, so the streak
-      // counter stays at one increment per calendar day. Persisted as a flag
-      // so a rest-day tap (where no sets/cardio get logged) still counts.
-      const k = TAPPED_PREFIX + todayKey();
-      if (!localStorage.getItem(k)) tryWrite(k, '1');
+      // Lock-in: bumps the streak counter per the rules in lockDayIn().
+      // Idempotent within the same calendar day.
+      lockDayIn(dayNum);
 
-      // Rest day: just lock visually, no logger
+      // Phase 1 (0 → 450ms): highlight tapped tile, dim the rest, fade in
+      // the ✓ check inside the tile. The tile's CSS handles the visuals.
       btn.classList.add('selecting');
       section.querySelectorAll('.day-tile').forEach(t => {
         if (t !== btn) t.classList.add('dimmed');
       });
+
+      // Phase 2 (after 450ms): fade the whole grid out before we swap views.
       setTimeout(() => {
-        setPickedDay(dayNum);
-        // A fresh tap always lands on the summary card — even if the previous
-        // pick had Open Logger pressed, this is a new day choice.
-        _loggerActive = false;
-        renderSplit();
+        const grid = section.querySelector('.day-picker-grid');
+        if (grid) {
+          grid.style.transition = 'opacity 0.3s var(--spring)';
+          grid.style.opacity = '0';
+        }
+
+        // Phase 3 (350ms later): commit picked day, drop into session card.
+        setTimeout(() => {
+          setPickedDay(dayNum);
+          _loggerActive = false; // fresh tap always lands on the summary
+          renderSplit();
+        }, 350);
       }, 450);
     }
 
@@ -4921,7 +4983,7 @@
             k === SETUP_KEY || k === DATA_VERSION_KEY ||
             k.startsWith(SESSION_PREFIX) || k.startsWith(HISTORY_PREFIX) ||
             k.startsWith(HISTLOG_PREFIX) || k.startsWith(COMPLETED_PREFIX) ||
-            k.startsWith(CARDIO_PREFIX) || k.startsWith(TAPPED_PREFIX)) {
+            k.startsWith(CARDIO_PREFIX) || k === STREAK_KEY) {
           localStorage.removeItem(k);
         }
       });
@@ -5119,6 +5181,10 @@
         const log = histLogByEx[exId].sort((a, b) => a.date.localeCompare(b.date));
         tryWrite(HISTLOG_PREFIX + exId, JSON.stringify(log));
       }
+
+      // Seed a believable streak for the demo screen-grabs — 12 days and
+      // counting, last lock-in was today so it shows confirmed (not at-risk).
+      tryWrite(STREAK_KEY, JSON.stringify({ count: 12, lastDate: todayKey(), lastDayNum: 1 }));
 
       tryWrite(SEED_KEY, SEED_VERSION);
     }
