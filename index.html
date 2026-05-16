@@ -60,41 +60,64 @@
       text-transform: uppercase; color: #fff; white-space: nowrap;
     }
 
-    /* Streak chip — fires above the day grid when ≥1-day streak exists */
+    /* Streak chip — fires above the day grid when ≥1-day streak exists.
+       No pill background; the flame + count carry the moment. Slow ember
+       pulse on the flame, sleek pop-in when the chip first renders. */
     .streak-row {
       display: flex; justify-content: center;
-      margin: 0 0 16px;
+      margin: 0 0 20px;
+      animation: streakPop 0.55s var(--spring) both;
+    }
+    @keyframes streakPop {
+      0%   { opacity: 0; transform: translateY(4px) scale(0.85); }
+      60%  { opacity: 1; transform: translateY(0)   scale(1.06); }
+      100% { opacity: 1; transform: translateY(0)   scale(1); }
     }
     .streak-chip {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 8px 14px;
-      background: rgba(251, 146, 60, 0.08);
-      border: 1px solid rgba(251, 146, 60, 0.22);
-      border-radius: 100px;
+      display: inline-flex; align-items: baseline; gap: 8px;
+      padding: 4px 8px;
+      background: transparent;
+      border: none;
       font-family: inherit;
-      transition: background 0.2s var(--spring), border-color 0.2s var(--spring);
     }
     .streak-emoji {
-      font-size: 14px;
-      filter: drop-shadow(0 0 8px rgba(251, 146, 60, 0.45));
+      font-size: 16px;
+      line-height: 1;
+      filter: drop-shadow(0 0 10px rgba(251, 146, 60, 0.55));
+      animation: streakGlow 2.4s ease-in-out infinite;
+      transform-origin: center;
+      align-self: center;
+    }
+    @keyframes streakGlow {
+      0%, 100% {
+        filter: drop-shadow(0 0 6px rgba(251, 146, 60, 0.4));
+        transform: scale(1);
+      }
+      50% {
+        filter: drop-shadow(0 0 16px rgba(251, 146, 60, 0.75));
+        transform: scale(1.08);
+      }
     }
     .streak-count {
-      font-size: 13px; font-weight: 700;
+      font-size: 15px; font-weight: 700;
       color: #fb923c;
       font-variant-numeric: tabular-nums;
       letter-spacing: -0.01em;
     }
     .streak-label {
-      font-size: 12px; font-weight: 500;
+      font-size: 13px; font-weight: 500;
       color: rgba(255, 255, 255, 0.55);
       letter-spacing: 0.01em;
     }
-    .streak-chip.at-risk {
-      background: rgba(255, 255, 255, 0.03);
-      border-color: rgba(255, 255, 255, 0.08);
+    .streak-chip.at-risk .streak-emoji {
+      filter: grayscale(0.7) opacity(0.55);
+      animation: none;
     }
-    .streak-chip.at-risk .streak-emoji { filter: grayscale(0.7) opacity(0.6); }
-    .streak-chip.at-risk .streak-count { color: rgba(251, 146, 60, 0.7); }
+    .streak-chip.at-risk .streak-count { color: rgba(251, 146, 60, 0.65); }
+    @media (prefers-reduced-motion: reduce) {
+      .streak-row { animation: none; }
+      .streak-emoji { animation: none; }
+    }
 
     /* Day picker grid */
     .day-picker-grid {
@@ -3091,7 +3114,7 @@
              <div class="streak-chip${streak.todayLogged ? '' : ' at-risk'}" title="${streak.todayLogged ? 'Logged today — streak alive' : 'Log today to keep your streak alive'}">
                <span class="streak-emoji">🔥</span>
                <span class="streak-count">${streak.count}</span>
-               <span class="streak-label">day${streak.count === 1 ? '' : 's'}${streak.todayLogged ? '' : ' · log today to keep'}</span>
+               <span class="streak-label">day streak${streak.todayLogged ? '' : ' · log today to keep'}</span>
              </div>
            </div>`
         : '';
