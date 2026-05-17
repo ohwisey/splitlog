@@ -47,8 +47,12 @@
     /* Standalone mode: cap the wrap at a phone-ish width.
        In embed mode the host container (e.g. .ohwisey-module) already
        owns the outer width, so splitlog must fill it 100%. */
-    .wrap { width: 100%; position: relative; }
-    [data-mode="standalone"] .wrap { max-width: 560px; }
+    /* Default-cap the wrap so direct visits + non-tagged embeds (iframe,
+       data-mode unset) don't stretch the day grid across a wide viewport.
+       The embed BUNDLE explicitly sets data-mode="embed" to opt out and
+       fill the host container's width. */
+    .wrap { width: 100%; max-width: 560px; position: relative; margin-left: auto; margin-right: auto; }
+    [data-mode="embed"] .wrap { max-width: none; }
 
     /* Section divider */
     .app-header {
@@ -2131,10 +2135,14 @@
           window.__SPLITLOG_VIEW__ = 'today';
           window.__SPLITLOG_MODE__ = 'embed';
           // Strip the host page's centering padding so the widget card sits flush.
+          // Keep the dark canvas (#000) so the iframe blends with any dark
+          // dashboard. Strip the standalone's centering padding so the widget
+          // card sits flush against the iframe edges.
+          document.documentElement.style.colorScheme = 'dark';
           var s = document.createElement('style');
-          s.textContent = 'html,body{padding:0!important;background:transparent!important;}'
-                        + 'body{display:block!important;}'
-                        + '.wrap{max-width:none!important;padding:0!important;}';
+          s.textContent = 'html,body{padding:0!important;background:#000!important;}'
+                        + 'body{display:block!important;min-height:0!important;}'
+                        + '.wrap{max-width:none!important;padding:0!important;width:100%!important;}';
           document.head.appendChild(s);
         }
       } catch (e) {}
