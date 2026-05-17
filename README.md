@@ -29,11 +29,17 @@ Paste these 3 elements inside `<body>` of your dashboard's `index.html`:
 <section id="splitlog-root"></section>
 <script src="https://ohwisey.github.io/splitlog/splitlog.bundle.js"></script>
 <script>
-  SplitLog.mount(document.getElementById('splitlog-root'), {
-    supabaseClient: window.OhWisey.supabase,
-    userId: window.OhWisey.userId,
-    mode: 'embed'
-  });
+  (function mount() {
+    if (!window.OhWisey?.supabase) {
+      setTimeout(mount, 100);
+      return;
+    }
+    SplitLog.mount(document.getElementById('splitlog-root'), {
+      supabaseClient: window.OhWisey.supabase,
+      userId: window.OhWisey.userId,
+      mode: 'embed'
+    });
+  })();
 </script>
 ```
 
@@ -42,6 +48,8 @@ Commit → push → wait for redeploy → SplitLog appears.
 **Requirements:**
 - Your dashboard exposes `window.OhWisey.supabase` and `window.OhWisey.userId` (OhWisey-Starter does this by default)
 - Your Supabase project has the OhWisey-Starter schema applied
+
+The polling shim waits for `window.OhWisey.supabase` to be ready (typically <500ms after page load). Without it, `SplitLog.mount` would race the dashboard's deferred auth module and run with an undefined client.
 
 ## Three ways to use it
 
