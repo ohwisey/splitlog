@@ -273,36 +273,11 @@ function buildBundle(opts) {
   return wrap(scopedCss, scopedJs, body);
 }
 
-// CSS vars exposed to host dashboards — drop the bare values onto the
-// scoped root so the host can override via --ohw-*. Solid mint accent gets
-// wired into theme-able rgba forms via color-mix below. Translucent forms
-// (the 0.05–0.25 alpha mints scattered through the source) stay hardcoded
-// in v1 — they're subtle enough that they read as themed.
-function cssVarsPrelude(scope) {
-  return `${scope} {
-  --sl-accent: var(--ohw-accent, #6ee7b7);
-  --sl-text: var(--ohw-text, #fff);
-  --sl-text-dim: var(--ohw-text-dim, rgba(255,255,255,0.55));
-  --sl-bg-card: var(--ohw-bg-card, rgba(20,20,22,0.6));
-  --sl-border: var(--ohw-border, rgba(255,255,255,0.08));
-  --sl-radius: var(--ohw-radius, 20px);
-  --sl-font: var(--ohw-font, -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif);
-}
-`;
-}
-
 // position: fixed escapes the container and floats over the viewport — not
 // allowed in OhWisey modules. Swap to absolute so the modals/toasts stay
 // inside the container (which mount() forces to position: relative).
 function fixedToAbsolute(css) {
   return css.replace(/position:\s*fixed/g, 'position: absolute');
-}
-
-// Wire the solid mint accent to the themable var so a host setting
-// --ohw-accent re-skins the prominent buttons / borders. Translucent
-// rgba mints are left in place — see cssVarsPrelude note above.
-function themeAccent(css) {
-  return css.replace(/#6ee7b7\b/gi, 'var(--sl-accent, #6ee7b7)');
 }
 
 function buildEmbed() {
@@ -311,10 +286,12 @@ function buildEmbed() {
   const jsRaw  = extractInlineScript(html);
   const body   = extractBodyMarkup(html);
 
+  // The source CSS now references --ohw-* variables directly with refined
+  // fallbacks (green-500 accent, #0d0d0d card bg, 12px radius), so no var
+  // prelude and no accent-rewrap step is needed here — the host's
+  // --ohw-* declarations cascade into the embed automatically.
   let scopedCss = scopeCss(cssRaw, EMBED_SEL);
   scopedCss = fixedToAbsolute(scopedCss);
-  scopedCss = themeAccent(scopedCss);
-  scopedCss = cssVarsPrelude(EMBED_SEL) + scopedCss;
 
   const scopedJs = scopeJs(jsRaw);
 
