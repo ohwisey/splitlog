@@ -2299,7 +2299,30 @@
     const _SL_INJECTED_CLIENT  = (typeof __SPLITLOG_SUPABASE_CLIENT__ !== 'undefined') ? __SPLITLOG_SUPABASE_CLIENT__ : null;
     const _SL_INJECTED_USER_ID = (typeof __SPLITLOG_USER_ID__ !== 'undefined') ? __SPLITLOG_USER_ID__ : null;
     const _SL_MODE             = (typeof __SPLITLOG_MODE__ !== 'undefined') ? __SPLITLOG_MODE__ : 'standalone';
-    const _SL_VIEW             = ((typeof __SPLITLOG_VIEW__ !== 'undefined') && __SPLITLOG_VIEW__ === 'today') ? 'today' : 'full';
+    // View mode: bundle injection wins; otherwise check URL ?view=today so
+    // iframing ohwisey.github.io/splitlog/?view=today renders the compact
+    // widget. Direct visits without the param get the full UI.
+    const _SL_VIEW             = (function () {
+      if (typeof __SPLITLOG_VIEW__ !== 'undefined' && __SPLITLOG_VIEW__ === 'today') return 'today';
+      try {
+        const v = new URLSearchParams(window.location.search).get('view');
+        if (v === 'today') return 'today';
+      } catch {}
+      return 'full';
+    })();
+    // Iframe transparency: loaded inside an iframe (dashboard embed), drop
+    // the solid black canvas so the host bg shows through, including the
+    // gaps between cards. Direct visits keep the black background.
+    try {
+      if (window.self !== window.top) {
+        document.documentElement.style.background = 'transparent';
+        document.body.style.background = 'transparent';
+        // Widget-in-iframe: drop the body padding so the compact card uses
+        // the iframe's full height instead of wasting it on the standalone
+        // page chrome.
+        if (_SL_VIEW === 'today') document.body.style.padding = '0';
+      }
+    } catch {}
 
     function tryWrite(key, value) {
       try {
