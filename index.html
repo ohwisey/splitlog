@@ -3542,7 +3542,7 @@
       // 2. No split yet → compact welcome card.
       if (!split || !Array.isArray(split) || !split.length) {
         host.innerHTML = `
-          <button class="widget-card" id="widget-tap" aria-label="Build your training week">
+          <div class="widget-card" id="widget-tap" role="button" tabindex="0" aria-label="Build your training week">
             ${renderWidgetGear()}
             <div class="widget-day-num">Get started</div>
             <div class="widget-day-name">Build your training week</div>
@@ -3550,7 +3550,7 @@
               <span class="day-tile-tag tag-light">START</span>
             </div>
             <div class="widget-progress">Tap to set up your split</div>
-          </button>`;
+          </div>`;
         wireWidgetCardTap();
         wireWidgetGear();
         if (typeof updateSyncDot === 'function') updateSyncDot();
@@ -3580,7 +3580,7 @@
       }
 
       host.innerHTML = `
-        <button class="widget-card${completed ? ' completed' : ''}" id="widget-tap" aria-label="Open Day ${n}: ${esc(day.name)}">
+        <div class="widget-card${completed ? ' completed' : ''}" id="widget-tap" role="button" tabindex="0" aria-label="Open Day ${n}: ${esc(day.name)}">
           ${renderWidgetGear()}
           <div class="widget-day-num">Day ${n}</div>
           <div class="widget-day-name">${esc(day.name)}</div>
@@ -3588,7 +3588,7 @@
             <span class="day-tile-tag ${tagClass(day.type)}">${tagLabel(day.type)}</span>
           </div>
           ${progressLine}
-        </button>`;
+        </div>`;
       wireWidgetCardTap();
       wireWidgetGear();
       if (typeof updateSyncDot === 'function') updateSyncDot();
