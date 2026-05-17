@@ -47,7 +47,11 @@
     /* Standalone mode: cap the wrap at a phone-ish width.
        In embed mode the host container (e.g. .ohwisey-module) already
        owns the outer width, so splitlog must fill it 100%. */
-    .wrap { width: 100%; position: relative; }
+    /* overflow: hidden clips any tile-selection glow at the wrap edge so it
+       can't bleed past the host dashboard's module card border. Modals,
+       popovers, and the rest-timer are siblings of .wrap (not descendants),
+       so they still overlay the full container area when open. */
+    .wrap { width: 100%; position: relative; overflow: hidden; border-radius: inherit; }
     [data-mode="standalone"] .wrap { max-width: 560px; }
 
     /* Section divider */
@@ -307,8 +311,10 @@
     }
     .day-tile:active { transform: scale(0.97); }
     .day-tile.selecting {
-      transform: scale(1.04);
-      box-shadow: 0 0 32px rgba(34, 197, 94, 0.45);
+      /* Tightened so the green glow + scale comfortably sit inside .wrap's
+         overflow clip even when the tapped tile is in a corner of the grid. */
+      transform: scale(1.02);
+      box-shadow: 0 0 18px rgba(34, 197, 94, 0.4);
       border-color: var(--ohw-accent, #22c55e); z-index: 2;
     }
     .day-tile.dimmed { opacity: 0.3; }
