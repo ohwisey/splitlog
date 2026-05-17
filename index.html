@@ -2083,15 +2083,15 @@
       100% { box-shadow: 0 0 0 8px rgba(248, 113, 113, 0); border-color: rgba(255,255,255,0.08); }
     }
 
-    /* Touch-target bumps — every interactive control hits 36×36 minimum (close to
-       Apple HIG 44 but tightened to fit our compact rows). Padding extended so
-       the visual size stays the same; only the hit area grows. */
-    .set-check-btn, .set-miss-btn { min-width: 36px; min-height: 36px; padding: 4px; }
-    .ex-action-btn               { min-width: 36px; min-height: 36px; }
-    .last-pencil                 { min-width: 32px; min-height: 32px; padding: 4px; }
-    .day-tile-edit               { min-width: 30px; min-height: 30px; }
-    .tailor-unit-btn             { min-height: 28px; padding: 5px 10px; }
-    .rest-edit-btn               { padding: 4px 0; }
+    /* Touch-target bumps — pushes every interactive control closer to Apple
+       HIG 44×44 within the visual constraints of compact rows. Padding
+       extends the hit area so the visual size doesn't grow. */
+    .set-check-btn, .set-miss-btn { min-width: 40px; min-height: 40px; padding: 4px; }
+    .ex-action-btn               { min-width: 40px; min-height: 40px; }
+    .last-pencil                 { min-width: 36px; min-height: 36px; padding: 4px; }
+    .day-tile-edit               { min-width: 36px; min-height: 36px; }
+    .tailor-unit-btn             { min-height: 32px; padding: 4px 12px; }
+    .rest-edit-btn               { padding: 8px 4px; }
 
     /* Color-contrast bumps — WCAG AA wants 4.5:1 for body text on black,
        which rules out white-at-0.4 (~4.2:1). Move tertiary to 0.55. */
