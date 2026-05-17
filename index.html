@@ -44,7 +44,11 @@
     @media (display-mode: standalone) {
       body { padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
     }
-    .wrap { width: 100%; max-width: 560px; position: relative; }
+    /* Standalone mode: cap the wrap at a phone-ish width.
+       In embed mode the host container (e.g. .ohwisey-module) already
+       owns the outer width, so splitlog must fill it 100%. */
+    .wrap { width: 100%; position: relative; }
+    [data-mode="standalone"] .wrap { max-width: 560px; }
 
     /* Section divider */
     .app-header {
@@ -279,7 +283,8 @@
 
     /* Day picker grid */
     .day-picker-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0;
+      width: 100%;
     }
     .day-tile-wrap { position: relative; }
     .day-tile {
@@ -288,8 +293,8 @@
       backdrop-filter: blur(20px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.06);
       border-radius: 20px;
-      padding: 24px; text-align: left;
-      min-height: 132px;
+      padding: 28px; text-align: left;
+      min-height: 168px;
       cursor: pointer;
       transition: transform 0.2s var(--spring), opacity 0.2s var(--spring), box-shadow 0.3s var(--spring), border-color 0.2s var(--spring);
       position: relative; overflow: hidden;
@@ -316,16 +321,16 @@
       font-weight: 500;
     }
     .day-tile-name {
-      font-size: 16px; font-weight: 600; color: #fff;
-      margin: 0 0 12px; line-height: 1.2;
+      font-size: 19px; font-weight: 600; color: #fff;
+      margin: 0 0 14px; line-height: 1.2;
       letter-spacing: -0.01em;
     }
     .day-tile-tag {
-      font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase;
-      padding: 4px 8px; border-radius: 6px; display: inline-block; font-weight: 600;
+      font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase;
+      padding: 5px 10px; border-radius: 7px; display: inline-block; font-weight: 600;
     }
     .day-tile-count {
-      font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 8px;
+      font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 10px;
     }
     .day-tile.completed {
       border-color: rgba(110, 231, 183, 0.28);
