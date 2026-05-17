@@ -23,33 +23,29 @@ A single-file workout split tracker. Runs in your browser. Your data stays on yo
 
 ## Embedding in your own dashboard
 
-Paste these 3 elements inside `<body>` of your dashboard's `index.html`:
+Paste a single tag just before `</body>` in your OhWisey dashboard's `index.html`:
 
 ```html
-<section id="splitlog-root"></section>
-<script src="https://ohwisey.github.io/splitlog/splitlog.bundle.js"></script>
-<script>
-  (function mount() {
-    if (!window.OhWisey?.supabase) {
-      setTimeout(mount, 100);
-      return;
-    }
-    SplitLog.mount(document.getElementById('splitlog-root'), {
-      supabaseClient: window.OhWisey.supabase,
-      userId: window.OhWisey.userId,
-      mode: 'embed'
-    });
-  })();
-</script>
+<script src="https://splitlog.vercel.app/embed.js"></script>
 ```
 
-Commit → push → wait for redeploy → SplitLog appears.
+That's it. `embed.js` waits for `window.OhWisey.registerModule` (polls every 50ms up to 5s), registers itself as the `splitlog` module, then renders inside the container the dashboard hands it. Everything — the day picker, the lock-in card, the logger, the settings sheet — lives as descendants of that container. No page-level styles, no floating overlays, no escapees.
 
 **Requirements:**
-- Your dashboard exposes `window.OhWisey.supabase` and `window.OhWisey.userId` (OhWisey-Starter does this by default)
+- The host is an OhWisey-Starter–compatible dashboard (exposes `window.OhWisey.registerModule`, `window.OhWisey.supabase`, `window.OhWisey.userId`)
 - Your Supabase project has the OhWisey-Starter schema applied
 
-The polling shim waits for `window.OhWisey.supabase` to be ready (typically <500ms after page load). Without it, `SplitLog.mount` would race the dashboard's deferred auth module and run with an undefined client.
+**Theming:** SplitLog inherits the dashboard's look through CSS variables. Set any of these on your dashboard's `:root` and SplitLog picks them up:
+
+| Variable | What it controls |
+|---|---|
+| `--ohw-accent` | Primary action color (default `#6ee7b7`) |
+| `--ohw-text` | Primary text color |
+| `--ohw-text-dim` | Secondary text color |
+| `--ohw-bg-card` | Card background |
+| `--ohw-border` | Card / divider border |
+| `--ohw-radius` | Container corner radius |
+| `--ohw-font` | Font stack |
 
 ## Three ways to use it
 
