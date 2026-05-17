@@ -2120,6 +2120,26 @@
       }
     }
   </style>
+  <script>
+    // URL-param bridge: when iframed with ?view=today, switch into the built-in
+    // widget mode by setting the same globals SplitLog.mount({view:'today'})
+    // would inject. Runs before the main script reads them.
+    (function () {
+      try {
+        var qs = new URLSearchParams(location.search);
+        if (qs.get('view') === 'today') {
+          window.__SPLITLOG_VIEW__ = 'today';
+          window.__SPLITLOG_MODE__ = 'embed';
+          // Strip the host page's centering padding so the widget card sits flush.
+          var s = document.createElement('style');
+          s.textContent = 'html,body{padding:0!important;background:transparent!important;}'
+                        + 'body{display:block!important;}'
+                        + '.wrap{max-width:none!important;padding:0!important;}';
+          document.head.appendChild(s);
+        }
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
   <div class="wrap">

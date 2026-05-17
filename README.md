@@ -20,6 +20,34 @@ Three options, ranked by friction:
 2. **Save the file** — right-click `index.html` → Save As. Open it from your filesystem. Runs offline forever.
 3. **Fork + host yourself** — fork this repo, enable GitHub Pages on `main`, and your fork's `username.github.io/splitlog/` is live in a minute.
 
+## Embed it in your own dashboard
+
+Drop one `<iframe>` into your dashboard's HTML — works in any framework, no script tag needed:
+
+```html
+<iframe
+  src="https://ohwisey.github.io/splitlog/?view=today"
+  style="display:block;width:100%;height:220px;border:0;border-radius:20px;color-scheme:dark;">
+</iframe>
+```
+
+`?view=today` switches the standalone into widget mode: one compact card showing today's day, type tag, and progress. Tap it to open the full app at `ohwisey.github.io/splitlog/` in the parent window.
+
+For the full standalone embedded inline (day-picker grid + logger), drop `?view=today` and set `height:680px` (or whatever fits your dashboard).
+
+Each viewer's data lives in their browser's `localStorage` scoped to `ohwisey.github.io` — fully private per-viewer, even though everyone iframes the same URL.
+
+**Adding more standalones later:** stack iframes in a flex column with `gap: 24px;` so they line up cleanly:
+
+```html
+<div style="display:flex;flex-direction:column;gap:24px;">
+  <iframe src="https://ohwisey.github.io/splitlog/?view=today" style="..."></iframe>
+  <iframe src="https://ohwisey.github.io/<next-standalone>/?view=today" style="..."></iframe>
+</div>
+```
+
+Same border-radius, same width, consistent gap — everything stays symmetrical.
+
 ## How it works
 
 - Pick a preset split (Push/Pull/Legs, Upper/Lower, Bro, Full Body) or build one from scratch.
