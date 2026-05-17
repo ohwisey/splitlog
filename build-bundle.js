@@ -292,6 +292,12 @@ function buildEmbed() {
   // --ohw-* declarations cascade into the embed automatically.
   let scopedCss = scopeCss(cssRaw, EMBED_SEL);
   scopedCss = fixedToAbsolute(scopedCss);
+  // Clip at the container so any tile-selection glow that extends past
+  // splitlog's bounds gets cut at the host card's rounded border instead
+  // of bleeding into the surrounding dashboard. border-radius: inherit
+  // picks up the host card's curve so the clip follows the visible edge,
+  // not a hard rectangle inside it.
+  scopedCss += `\n${EMBED_SEL} { overflow: hidden; border-radius: inherit; }\n`;
 
   const scopedJs = scopeJs(jsRaw);
 
