@@ -28,24 +28,26 @@ Three options, ranked by friction:
 <script src="https://ohwisey.github.io/splitlog/embed.js"></script>
 ```
 
-That's it. The script injects a SplitLog widget where the `<script>` tag sits, auto-sizes to its content (empty state, day card, completed — every state fits perfectly), and inherits a dark theme. No CSS to write, no height to guess, no styling to break.
+That's it. The script injects the full SplitLog app — day-picker grid, logger, settings, sync — as a single dashboard section at the `<script>` tag's location. Dark-themed, full-width of its container, 20px rounded corners, no styling needed on your end.
 
-**Want the full app inline** (day-picker grid + logger, not the compact card)?
+**Want the compact "today's card" widget instead** (one card showing today's day + progress, tap to open full app)?
 
 ```html
-<script src="https://ohwisey.github.io/splitlog/embed.js?full=1"></script>
+<script src="https://ohwisey.github.io/splitlog/embed.js?widget=1"></script>
 ```
+
+The widget mode auto-resizes to its content; full mode uses a fixed 720px section height — enough to comfortably show the day-picker grid and the start of the logger without scrolling.
 
 **Prefer a raw iframe** (e.g., your CSP blocks third-party scripts)?
 
 ```html
 <iframe
-  src="https://ohwisey.github.io/splitlog/?view=today"
-  style="display:block;width:100%;height:160px;border:0;border-radius:20px;background:#000;color-scheme:dark;">
+  src="https://ohwisey.github.io/splitlog/"
+  style="display:block;width:100%;height:720px;border:0;border-radius:20px;background:#000;color-scheme:dark;">
 </iframe>
 ```
 
-You lose auto-resize with this path — you'll have to pick a height yourself. The script-tag install is recommended.
+The script-tag install is recommended — it handles the iframe styling and width/height for you, and any future fixes (auto-resize improvements, etc.) deploy automatically.
 
 **Privacy:** Each viewer's data lives in their browser's `localStorage` scoped to `ohwisey.github.io` — fully private per-viewer, even though everyone embeds the same URL.
 

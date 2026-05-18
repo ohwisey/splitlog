@@ -5,24 +5,29 @@
  *
  *     <script src="https://ohwisey.github.io/splitlog/embed.js"></script>
  *
- * That's it. The script injects a SplitLog widget iframe at its own location,
- * auto-resizes it to fit content, and inherits a dark theme.
+ * That's it. The script injects the full SplitLog app inline at its own
+ * location, sized to fit a dashboard section, and inherits a dark theme.
  *
- * Want the full app inline (not just the widget card)? Pass ?full=1:
+ * Want the compact "today's session" widget card instead of the full app?
  *
- *     <script src="https://ohwisey.github.io/splitlog/embed.js?full=1"></script>
+ *     <script src="https://ohwisey.github.io/splitlog/embed.js?widget=1"></script>
+ *
+ * The widget auto-resizes to its content; full mode uses a fixed dashboard
+ * section height that comfortably fits the day-picker grid and logger.
  */
 (function () {
   var SCRIPT = document.currentScript;
   if (!SCRIPT) return; // no anchor — bail rather than guess
 
-  // Read flags off the script's own URL: e.g. ?full=1 to load the full app.
+  // Read flags off the script's own URL: e.g. ?widget=1 for compact card.
+  // Default is the full app (this is what most viewers want — settings,
+  // day grid, logger, all in one section).
   var src = SCRIPT.getAttribute('src') || '';
   var qs = src.split('?')[1] || '';
-  var fullMode = /(^|&)full=1\b/.test(qs);
+  var widgetMode = /(^|&)widget=1\b/.test(qs);
 
   var IFRAME_SRC = 'https://ohwisey.github.io/splitlog/' +
-    (fullMode ? '' : '?view=today');
+    (widgetMode ? '?view=today' : '');
 
   // Build the iframe. Visual contract:
   //   - full width of parent (no fixed px → adapts to any dashboard)
@@ -37,7 +42,7 @@
   iframe.style.cssText = [
     'display:block',
     'width:100%',
-    'height:' + (fullMode ? '720' : '160') + 'px',
+    'height:' + (widgetMode ? '160' : '720') + 'px',
     'border:0',
     'border-radius:20px',
     'background:#000',
