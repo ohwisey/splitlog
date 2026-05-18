@@ -1739,6 +1739,49 @@
     }
     .ex-pick-add-row { display: flex; gap: 8px; }
     .ex-pick-add-row input { flex: 1; min-width: 0; }
+
+    /* Library search dropdown — shows when the user types in the add-exercise
+       input. Click a row to add that library exercise to the day instantly. */
+    .ex-pick-suggestions {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      max-height: 240px;
+      overflow-y: auto;
+    }
+    .ex-pick-suggestions[hidden] { display: none; }
+    .ex-pick-suggestion {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.2s var(--spring);
+    }
+    .ex-pick-suggestion:last-child { border-bottom: none; }
+    .ex-pick-suggestion:hover { background: rgba(34, 197, 94, 0.06); }
+    .ex-pick-suggestion-name {
+      font-size: 13px; font-weight: 500; color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .ex-pick-suggestion-meta {
+      font-size: 11px; color: rgba(255, 255, 255, 0.45);
+      font-variant-numeric: tabular-nums;
+    }
+    .ex-pick-suggestion.already-added {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    .ex-pick-suggestion-tag {
+      font-size: 9px; font-weight: 600;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      color: rgba(34, 197, 94, 0.85);
+    }
+    .ex-pick-custom-hint {
+      font-size: 11px; color: rgba(255, 255, 255, 0.4);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
     .ex-pick-add-actions {
       display: flex; gap: 8px; justify-content: flex-end; margin-top: 2px;
     }
@@ -2481,6 +2524,98 @@
       russian_twist:   { name: 'Russian twist',           sets: 3, reps: '20'    },
       toes_to_bar:     { name: 'Toes to bar',             sets: 3, reps: '8-10'  },
       plank:           { name: 'Plank (hold)',            sets: 3, reps: '45s'   },
+
+      // ── Library expansion: common-to-niche exercises so the search feels
+      // like a real lookup. IDs are stable; if you rename, keep the old
+      // ID so existing user history doesn't orphan.
+
+      // Chest
+      decline_bb:      { name: 'Decline barbell bench',   sets: 4, reps: '6-8'   },
+      decline_db:      { name: 'Decline DB press',        sets: 3, reps: '8-10'  },
+      smith_bench:     { name: 'Smith machine bench',     sets: 4, reps: '6-8'   },
+      svend_press:     { name: 'Svend press',             sets: 3, reps: '12-15' },
+      pushup:          { name: 'Push-up',                 sets: 3, reps: 'AMRAP' },
+      pushup_weighted: { name: 'Weighted push-up',        sets: 3, reps: '10-15' },
+      diamond_pushup:  { name: 'Diamond push-up',         sets: 3, reps: '10-15' },
+      db_fly:          { name: 'Dumbbell fly',            sets: 3, reps: '10-12' },
+      cable_crossover: { name: 'Cable cross-over',        sets: 3, reps: '12-15' },
+      incl_cable_fly:  { name: 'Incline cable fly',       sets: 3, reps: '12-15' },
+
+      // Back
+      inverted_row:    { name: 'Inverted row',            sets: 3, reps: '10-12' },
+      meadows_row:     { name: 'Meadows row',             sets: 3, reps: '8-10'  },
+      sa_cable_row:    { name: 'Single-arm cable row',    sets: 3, reps: '10 ea' },
+      straight_arm:    { name: 'Straight-arm pulldown',   sets: 3, reps: '12-15' },
+      pulldown_wide:   { name: 'Lat pulldown (wide grip)',sets: 4, reps: '8-12'  },
+      pulldown_close:  { name: 'Lat pulldown (close grip)',sets: 3, reps: '8-12' },
+      smith_row:       { name: 'Smith machine row',       sets: 3, reps: '8-10'  },
+      shrug_db:        { name: 'DB shrug',                sets: 3, reps: '12-15' },
+      shrug_bb:        { name: 'Barbell shrug',           sets: 4, reps: '10-12' },
+      rack_pull:       { name: 'Rack pull',               sets: 3, reps: '5-6'   },
+      good_morning:    { name: 'Good morning',            sets: 3, reps: '8-10'  },
+
+      // Shoulders
+      arnold_press:    { name: 'Arnold press',            sets: 3, reps: '10-12' },
+      front_raise_db:  { name: 'Front raise (DB)',        sets: 3, reps: '12-15' },
+      front_raise_cb:  { name: 'Front raise (cable)',     sets: 3, reps: '12-15' },
+      upright_row:     { name: 'Upright row',             sets: 3, reps: '10-12' },
+      cuban_press:     { name: 'Cuban press',             sets: 3, reps: '12-15' },
+      handstand_pu:    { name: 'Handstand push-up',       sets: 3, reps: 'AMRAP' },
+
+      // Arms (biceps + triceps)
+      ez_curl:         { name: 'EZ bar curl',             sets: 4, reps: '8-10'  },
+      spider_curl:     { name: 'Spider curl',             sets: 3, reps: '10-12' },
+      concentration_c: { name: 'Concentration curl',      sets: 3, reps: '10-12' },
+      cable_hammer:    { name: 'Cable hammer curl (rope)',sets: 3, reps: '12'    },
+      reverse_curl:    { name: 'Reverse curl',            sets: 3, reps: '12-15' },
+      drag_curl:       { name: 'Drag curl',               sets: 3, reps: '10-12' },
+      zottman_curl:    { name: 'Zottman curl',            sets: 3, reps: '10-12' },
+      cable_kickback:  { name: 'Cable kickback',          sets: 3, reps: '12-15' },
+      bench_dip:       { name: 'Bench dip',               sets: 3, reps: '12-15' },
+      tate_press:      { name: 'Tate press',              sets: 3, reps: '10-12' },
+      db_skullcrusher: { name: 'DB skullcrusher',         sets: 3, reps: '10-12' },
+      jm_press:        { name: 'JM press',                sets: 3, reps: '8-10'  },
+
+      // Legs
+      box_squat:       { name: 'Box squat',               sets: 4, reps: '5-6'   },
+      pause_squat:     { name: 'Pause squat',             sets: 4, reps: '5'     },
+      goblet_squat:    { name: 'Goblet squat',            sets: 3, reps: '10-12' },
+      zercher_squat:   { name: 'Zercher squat',           sets: 3, reps: '6-8'   },
+      hex_dl:          { name: 'Hex bar deadlift',        sets: 3, reps: '5-6'   },
+      sumo_dl:         { name: 'Sumo deadlift',           sets: 3, reps: '5'     },
+      sl_dl:           { name: 'Stiff-leg deadlift',      sets: 3, reps: '8-10'  },
+      single_leg_press:{ name: 'Single-leg leg press',    sets: 3, reps: '10 ea' },
+      step_up:         { name: 'Step-up',                 sets: 3, reps: '10 ea' },
+      reverse_lunge:   { name: 'Reverse lunge',           sets: 3, reps: '10 ea' },
+      glute_bridge:    { name: 'Glute bridge',            sets: 3, reps: '10-12' },
+      adductor:        { name: 'Adductor machine',        sets: 3, reps: '12-15' },
+      abductor:        { name: 'Abductor machine',        sets: 3, reps: '12-15' },
+      donkey_calf:     { name: 'Donkey calf raise',       sets: 4, reps: '12-15' },
+      seated_calf:     { name: 'Seated calf raise',       sets: 4, reps: '12-15' },
+      nordic_curl:     { name: 'Nordic hamstring curl',   sets: 3, reps: '6-8'   },
+
+      // Abs / core
+      situp:           { name: 'Sit-up',                  sets: 3, reps: '15-20' },
+      decline_situp:   { name: 'Decline sit-up',          sets: 3, reps: '15-20' },
+      weighted_situp:  { name: 'Weighted sit-up',         sets: 3, reps: '12-15' },
+      crunch:          { name: 'Crunch',                  sets: 3, reps: '15-20' },
+      bicycle_crunch:  { name: 'Bicycle crunch',          sets: 3, reps: '20'    },
+      v_up:            { name: 'V-up',                    sets: 3, reps: '12-15' },
+      dragon_flag:     { name: 'Dragon flag',             sets: 3, reps: '6-8'   },
+      cable_woodchop:  { name: 'Cable woodchop',          sets: 3, reps: '12 ea' },
+      pallof_press:    { name: 'Pallof press',            sets: 3, reps: '12 ea' },
+      side_plank:      { name: 'Side plank (hold)',       sets: 3, reps: '30s ea'},
+      dead_bug:        { name: 'Dead bug',                sets: 3, reps: '10 ea' },
+      mountain_climb:  { name: 'Mountain climber',        sets: 3, reps: '20 ea' },
+
+      // Conditioning / accessory
+      farmer_carry:    { name: "Farmer's carry",          sets: 3, reps: '40m'   },
+      sled_push:       { name: 'Sled push',               sets: 4, reps: '20m'   },
+      box_jump:        { name: 'Box jump',                sets: 4, reps: '5'     },
+      battle_ropes:    { name: 'Battle ropes',            sets: 3, reps: '30s'   },
+      burpee:          { name: 'Burpee',                  sets: 3, reps: '10'    },
+      kb_swing:        { name: 'Kettlebell swing',        sets: 4, reps: '15'    },
+      turkish_getup:   { name: 'Turkish get-up',          sets: 3, reps: '3 ea'  },
     };
 
     // ── Custom exercises (user-added) ──────────────────────────────────────
@@ -5097,8 +5232,10 @@
       const customIsolationIds = customs.filter(c => c.group === 'isolation').map(c => c.id);
       const customIdSet = new Set([...customCompoundIds, ...customIsolationIds]);
 
-      const compoundsHTML = renderExGroupHTML('compounds', 'Compounds', [...group.compounds, ...customCompoundIds], picked, pickedMap, cat, customIdSet);
-      const isolationHTML = renderExGroupHTML('isolation', 'Isolation / extensions', [...group.isolation, ...customIsolationIds], picked, pickedMap, cat, customIdSet);
+      const compoundIdList = [...group.compounds, ...customCompoundIds];
+      const isolationIdList = [...group.isolation, ...customIsolationIds];
+      const compoundsHTML = renderExGroupHTML('compounds', 'Compounds', compoundIdList, picked, pickedMap, cat, customIdSet);
+      const isolationHTML = renderExGroupHTML('isolation', 'Isolation / extensions', isolationIdList, picked, pickedMap, cat, customIdSet);
       // Abs / core — always offered as a third group on every non-rest, non-abs
       // workout day so any split (push/pull/legs/upper/lower/etc.) can stack
       // core work without changing the day name to "Pull + Abs". Skipped when
@@ -5106,6 +5243,18 @@
       const absIds = (cat !== 'abs' && CATEGORY_GROUPS.abs) ? CATEGORY_GROUPS.abs.isolation : [];
       const absHTML = absIds.length
         ? renderExGroupHTML('abs', 'Abs / Core', absIds, picked, pickedMap, cat, new Set())
+        : '';
+
+      // "Added by search" — any exercise the user added via the library
+      // search that doesn't belong to this day's standard groups gets shown
+      // here so it's not orphaned. Stable across re-renders because we read
+      // from day.exercises directly.
+      const shownInGroups = new Set([...compoundIdList, ...isolationIdList, ...absIds]);
+      const otherAddedIds = (day.exercises || [])
+        .map(e => e.id)
+        .filter(id => EX[id] && !shownInGroups.has(id));
+      const otherHTML = otherAddedIds.length
+        ? renderExGroupHTML('other', 'Added by you', otherAddedIds, picked, pickedMap, cat, new Set(otherAddedIds))
         : '';
 
       // Step progress
@@ -5130,6 +5279,7 @@
         ${compoundsHTML}
         ${isolationHTML}
         ${absHTML}
+        ${otherHTML}
 
         ${(group.compounds.length + group.isolation.length === 0) ? '<div class="ex-empty-note">No recommended exercises for this category. Set day name to push / pull / legs / upper / lower / chest / back / shoulders / arms / full body to get suggestions.</div>' : ''}
 
@@ -5184,16 +5334,18 @@
       const formId = `custom-${key}-${cat}`;
       const addCustomHTML = `
         <div class="ex-pick-add">
-          <button class="ex-pick-add-btn" data-custom-toggle data-group="${key}" data-cat="${esc(cat)}">+ Add custom exercise</button>
+          <button class="ex-pick-add-btn" data-custom-toggle data-group="${key}" data-cat="${esc(cat)}">+ Add exercise</button>
           <div class="ex-pick-add-form" data-custom-form data-group="${key}" data-cat="${esc(cat)}" id="${formId}" style="display:none;">
-            <input type="text" data-custom-name placeholder="Exercise name" maxlength="40" />
+            <input type="text" data-custom-name data-suggest-input data-group="${key}" data-cat="${esc(cat)}" placeholder="Search library or type a new name…" maxlength="40" autocomplete="off" />
+            <div class="ex-pick-suggestions" data-suggest-list data-group="${key}" data-cat="${esc(cat)}" hidden></div>
             <div class="ex-pick-add-row">
               <input type="text" inputmode="numeric" data-custom-sets placeholder="Sets" value="3" maxlength="2" />
               <input type="text" data-custom-reps placeholder="Reps · 8-12" value="8-12" maxlength="10" />
             </div>
+            <div class="ex-pick-custom-hint">Tap a search result above to add instantly, or fill sets &amp; reps to add as a brand-new custom.</div>
             <div class="ex-pick-add-actions">
               <button class="ex-pick-add-cancel" data-custom-cancel data-group="${key}" data-cat="${esc(cat)}">Cancel</button>
-              <button class="ex-pick-add-save" data-custom-save data-group="${key}" data-cat="${esc(cat)}">Add</button>
+              <button class="ex-pick-add-save" data-custom-save data-group="${key}" data-cat="${esc(cat)}">Add custom</button>
             </div>
           </div>
         </div>`;
@@ -5258,6 +5410,72 @@
           if (form) form.style.display = 'none';
           if (toggle) toggle.style.display = '';
         });
+      });
+
+      // ── Search-as-you-type across the whole EX library ──────────────────
+      // Typing in the add-exercise name field filters the entire EX dict
+      // (compounds, isolation, abs, accessory — everything) so the user
+      // can drop "incline DB curl" into a push day without having to retype
+      // it. Already-picked exercises are dimmed so we don't double-add.
+      const pickedIds = new Set((day.exercises || []).map(e => e.id));
+      document.querySelectorAll('[data-suggest-input]').forEach(input => {
+        const group = input.dataset.group;
+        const cat   = input.dataset.cat;
+        const list  = document.querySelector(`[data-suggest-list][data-group="${group}"][data-cat="${cat}"]`);
+        if (!list) return;
+
+        function buildSuggestions(query) {
+          const q = (query || '').trim().toLowerCase();
+          if (q.length < 1) return [];
+          // Score: 3 = starts-with, 2 = word-boundary match, 1 = substring.
+          // Higher score wins; tie-break alphabetically.
+          const out = [];
+          for (const id of Object.keys(EX)) {
+            const name = (EX[id].name || '').toLowerCase();
+            if (!name.includes(q)) continue;
+            let score = 1;
+            if (name.startsWith(q)) score = 3;
+            else if (new RegExp('\\\\b' + q.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&'), 'i').test(name)) score = 2;
+            out.push({ id, score, name: EX[id].name });
+          }
+          out.sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+          return out.slice(0, 8);
+        }
+
+        function renderSuggestions(q) {
+          const matches = buildSuggestions(q);
+          if (!matches.length) {
+            list.hidden = true;
+            list.innerHTML = '';
+            return;
+          }
+          list.hidden = false;
+          list.innerHTML = matches.map(m => {
+            const ex = EX[m.id];
+            const already = pickedIds.has(m.id);
+            return `<div class="ex-pick-suggestion${already ? ' already-added' : ''}" data-suggest-pick="${esc(m.id)}">
+              <div>
+                <div class="ex-pick-suggestion-name">${esc(ex.name)}</div>
+                <div class="ex-pick-suggestion-meta">${ex.sets} × ${esc(ex.reps)}</div>
+              </div>
+              <span class="ex-pick-suggestion-tag">${already ? 'added' : 'tap to add'}</span>
+            </div>`;
+          }).join('');
+
+          list.querySelectorAll('[data-suggest-pick]').forEach(row => {
+            row.addEventListener('click', () => {
+              const id = row.dataset.suggestPick;
+              if (!id || pickedIds.has(id)) return;
+              day.exercises = day.exercises || [];
+              if (!day.exercises.some(e => e.id === id)) day.exercises.push({ id });
+              renderWizard();
+            });
+          });
+        }
+
+        input.addEventListener('input', () => renderSuggestions(input.value));
+        // If the form was just opened with a previous typed value, render once.
+        if (input.value) renderSuggestions(input.value);
       });
       document.querySelectorAll('[data-custom-save]').forEach(btn => {
         btn.addEventListener('click', () => {
