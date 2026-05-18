@@ -2836,21 +2836,242 @@
         tryWrite(DATA_VERSION_KEY, String(CURRENT_DATA_VERSION));
       }
     }
+    // ── Tailor v2: sibling inheritance + age curve + rep-range conversion ──
+    // Many of the ~220 library exercises don't have a direct TAILOR_TABLE
+    // entry. SIBLING_INHERIT routes them to a related base lift with a
+    // multiplier — e.g. floor press = 95% of bench, power clean = 55% of
+    // back squat, single-leg hip thrust = 45% of bilateral hip thrust.
+    // Multipliers come from documented lifter ratios (Wendler 5/3/1,
+    // Rippetoe Starting Strength, ExRx standards, Greg Nuckols /
+    // Stronger By Science intermediate norms).
+    const SIBLING_INHERIT = {
+      // Bench / press variants
+      floor_press:    { base:'bench_bb',       mul:0.95 },
+      pin_press:      { base:'bench_bb',       mul:0.90 },
+      board_press:    { base:'bench_bb',       mul:1.05 },
+      spoto_press:    { base:'bench_bb',       mul:0.92 },
+      larsen_press:   { base:'bench_bb',       mul:0.90 },
+      pause_bench:    { base:'bench_bb',       mul:0.93 },
+      touch_go_bench: { base:'bench_bb',       mul:1.00 },
+      decline_bb:     { base:'bench_bb',       mul:0.97 },
+      decline_db:     { base:'flat_db_press',  mul:1.00 },
+      smith_bench:    { base:'bench_bb',       mul:0.88 },
+      band_bench:     { base:'bench_bb',       mul:0.88 },
+
+      // Squat variants
+      box_squat:      { base:'back_squat',     mul:0.92 },
+      pause_squat:    { base:'back_squat',     mul:0.90 },
+      anderson_squat: { base:'back_squat',     mul:0.85 },
+      safety_bar_sq:  { base:'back_squat',     mul:0.92 },
+      band_squat:     { base:'back_squat',     mul:0.85 },
+      zercher_squat:  { base:'back_squat',     mul:0.80 },
+      goblet_squat:   { base:'flat_db_press',  mul:1.60 },
+
+      // Deadlift variants
+      hex_dl:         { base:'conv_dl',        mul:1.02 },
+      sumo_dl:        { base:'conv_dl',        mul:1.00 },
+      sl_dl:          { base:'rdl',            mul:0.92 },
+      block_pull:     { base:'conv_dl',        mul:1.10 },
+      deficit_dl:     { base:'conv_dl',        mul:0.92 },
+      snatch_grip_dl: { base:'conv_dl',        mul:0.85 },
+      rack_pull:      { base:'conv_dl',        mul:1.15 },
+      good_morning:   { base:'rdl',            mul:0.55 },
+
+      // Overhead / jerk variants
+      push_jerk:      { base:'push_press',     mul:1.10 },
+      split_jerk:     { base:'push_press',     mul:1.15 },
+
+      // Olympic lifts (relative to back squat — documented ratios)
+      power_clean:    { base:'back_squat',     mul:0.55 },
+      hang_clean:     { base:'back_squat',     mul:0.52 },
+      full_clean:     { base:'back_squat',     mul:0.65 },
+      power_snatch:   { base:'back_squat',     mul:0.42 },
+      hang_snatch:    { base:'back_squat',     mul:0.40 },
+      full_snatch:    { base:'back_squat',     mul:0.52 },
+      clean_and_jerk: { base:'back_squat',     mul:0.62 },
+      clean_high_pull:{ base:'back_squat',     mul:0.60 },
+      snatch_high_pull:{ base:'back_squat',    mul:0.45 },
+      clean_pull:     { base:'back_squat',     mul:0.70 },
+      snatch_pull:    { base:'back_squat',     mul:0.55 },
+      overhead_squat: { base:'back_squat',     mul:0.50 },
+      snatch_balance: { base:'back_squat',     mul:0.55 },
+
+      // Row variants
+      yates_row:      { base:'bb_row',         mul:0.95 },
+      seal_row:       { base:'bb_row',         mul:0.85 },
+      kroc_row:       { base:'single_arm_row', mul:1.20 },
+      meadows_row:    { base:'single_arm_row', mul:1.10 },
+      sa_cable_row:   { base:'seated_cable_row', mul:0.55 },
+      smith_row:      { base:'bb_row',         mul:0.92 },
+      pendulum_row:   { base:'bb_row',         mul:0.85 },
+      helms_row:      { base:'chest_supp_row', mul:1.00 },
+
+      // Lat / back accessory
+      pulldown_wide:  { base:'lat_pulldown',   mul:0.92 },
+      pulldown_close: { base:'lat_pulldown',   mul:0.95 },
+      straight_arm:   { base:'cable_curl',     mul:0.85 },
+      iso_pulldown:   { base:'lat_pulldown',   mul:0.65 },
+      shrug_bb:       { base:'bb_row',         mul:1.55 },
+      shrug_db:       { base:'flat_db_press',  mul:1.45 },
+      hex_bar_shrug:  { base:'bb_row',         mul:1.60 },
+
+      // Chest accessory + fly variants
+      hammer_press:   { base:'machine_chest',  mul:1.00 },
+      iso_chest:      { base:'machine_chest',  mul:0.65 },
+      cable_crossover:{ base:'cable_fly',      mul:1.00 },
+      low_to_high_fly:{ base:'cable_fly',      mul:1.00 },
+      high_to_low_fly:{ base:'cable_fly',      mul:1.00 },
+      incl_cable_fly: { base:'cable_fly',      mul:1.00 },
+      db_fly:         { base:'flat_db_press',  mul:0.45 },
+      cable_pullover: { base:'cable_curl',     mul:1.30 },
+      db_pullover:    { base:'flat_db_press',  mul:0.65 },
+      svend_press:    { base:'cable_fly',      mul:0.50 },
+      pushup_weighted:{ base:'flat_db_press',  mul:0.35 },
+
+      // Shoulder isolation
+      arnold_press:   { base:'seated_db_ohp',  mul:0.95 },
+      front_raise_db: { base:'db_lat_raise',   mul:1.00 },
+      front_raise_cb: { base:'cable_lat_raise',mul:1.00 },
+      upright_row:    { base:'bb_curl',        mul:0.85 },
+      lat_raise_mach: { base:'pec_deck',       mul:0.60 },
+      bent_lat_raise: { base:'db_lat_raise',   mul:0.72 },
+      cable_y_raise:  { base:'cable_lat_raise',mul:0.85 },
+      powell_raise:   { base:'db_lat_raise',   mul:0.85 },
+      cuban_press:    { base:'db_lat_raise',   mul:0.75 },
+
+      // Bicep / forearm variants
+      ez_curl:         { base:'bb_curl',       mul:0.90 },
+      spider_curl:     { base:'bb_curl',       mul:0.55 },
+      concentration_c: { base:'incl_db_curl',  mul:0.90 },
+      drag_curl:       { base:'bb_curl',       mul:0.85 },
+      zottman_curl:    { base:'hammer_curl',   mul:0.85 },
+      cable_hammer:    { base:'cable_curl',    mul:0.85 },
+      reverse_curl:    { base:'bb_curl',       mul:0.65 },
+      waiter_curl:     { base:'incl_db_curl',  mul:0.85 },
+      cheat_curl:      { base:'bb_curl',       mul:1.15 },
+      twentyones:      { base:'bb_curl',       mul:0.60 },
+      sa_cable_curl:   { base:'cable_curl',    mul:0.50 },
+      wrist_curl:      { base:'bb_curl',       mul:0.40 },
+      rev_wrist_curl:  { base:'bb_curl',       mul:0.30 },
+
+      // Tricep variants
+      tate_press:      { base:'skullcrushers', mul:0.70 },
+      db_skullcrusher: { base:'skullcrushers', mul:0.70 },
+      jm_press:        { base:'close_grip',    mul:0.85 },
+      rev_pushdown:    { base:'tri_pushdown',  mul:0.85 },
+      sa_tri_ext:      { base:'tri_pushdown',  mul:0.45 },
+      two_arm_oh_db:   { base:'oh_tri_ext',    mul:0.85 },
+      cable_kickback:  { base:'tri_pushdown',  mul:0.30 },
+
+      // Glute / hip accessory
+      sl_hip_thrust:   { base:'hip_thrust',    mul:0.45 },
+      frog_pump:       { base:'hip_thrust',    mul:0.45 },
+      glute_bridge:    { base:'hip_thrust',    mul:0.55 },
+      pull_through:    { base:'cable_curl',    mul:1.40 },
+      glute_kickback:  { base:'cable_curl',    mul:0.40 },
+
+      // Legs accessory
+      single_leg_press:{ base:'leg_press',     mul:0.45 },
+      step_up:         { base:'bulgarian_ss',  mul:0.90 },
+      reverse_lunge:   { base:'bulgarian_ss',  mul:0.95 },
+      donkey_calf:     { base:'calf_raise',    mul:1.00 },
+      seated_calf:     { base:'calf_raise',    mul:0.55 },
+
+      // Abs / core (weighted)
+      cable_woodchop:  { base:'cable_curl',    mul:0.55 },
+      pallof_press:    { base:'cable_curl',    mul:0.40 },
+
+      // Conditioning carries
+      farmer_carry:    { base:'flat_db_press', mul:0.95 },
+      farmer_hold:     { base:'flat_db_press', mul:1.10 },
+      sled_push:       { base:'back_squat',    mul:0.50 },
+      sled_drag:       { base:'back_squat',    mul:0.35 },
+      prowler:         { base:'back_squat',    mul:0.50 },
+    };
+
+    // Piecewise age model — strength peaks 25-35, gentle drift through 40s,
+    // steeper through 50s and 60s. Conservative scale for under-18 lifters.
+    function ageMultiplier(age) {
+      if (!age) return 1;
+      if (age < 14) return 0.50;
+      if (age < 16) return 0.65;
+      if (age < 18) return 0.80;
+      if (age < 21) return 0.92;
+      if (age < 25) return 0.98;
+      if (age < 35) return 1.00;
+      if (age < 45) return 1 - (age - 35) * 0.006;
+      if (age < 55) return 0.94 - (age - 45) * 0.010;
+      if (age < 65) return 0.84 - (age - 55) * 0.014;
+      return Math.max(0.50, 0.70 - (age - 65) * 0.018);
+    }
+
+    // Pull a representative rep count out of an EX entry's reps string so we
+    // can convert the 5-8 RM baseline in TAILOR_TABLE into the actual working
+    // load for the prescribed rep range. Time-based holds (15s, plank) and
+    // distance-based work (40m carry) return null → no rep adjustment.
+    function parseReps(repsStr) {
+      if (repsStr == null) return 8;
+      const s = String(repsStr).trim();
+      if (!s) return 8;
+      if (/(s|m|hold)\s*$/i.test(s) && !/^\d+$/.test(s)) return null;
+      if (/amrap/i.test(s)) return 8;
+      const range = s.match(/^(\d+)\s*-\s*(\d+)/);
+      if (range) return (Number(range[1]) + Number(range[2])) / 2;
+      const single = s.match(/^(\d+)/);
+      if (single) return Number(single[1]);
+      return 8;
+    }
+
+    // ~2.5% lighter per rep above the 5-8 RM baseline; ~2.5% heavier per rep
+    // below it. Clamped so very-low-rep work doesn't balloon and very-high-rep
+    // doesn't collapse to nothing. Approximates the Epley / Brzycki curve.
+    function repAdjustment(reps) {
+      if (reps == null) return 1;
+      const baseline = 6.5;
+      const m = 1 + (baseline - reps) * 0.025;
+      return Math.max(0.55, Math.min(1.15, m));
+    }
+
+    function roundToPlate(w) {
+      if (w <= 0) return 0;
+      if (w < 5)  return Math.max(0, Math.round(w * 2) / 2);    // 0.5 increments under 5
+      if (w < 20) return Math.max(0, Math.round(w));            // 1kg increments under 20
+      return Math.max(0, Math.round(w * 2 / 5) * 2.5);          // 2.5kg plates ≥20
+    }
+
     function tailorWeight(exId, profile) {
       if (!profile || !profile.weight) return null;
-      const t = TAILOR_TABLE[exId];
-      if (!t) return null;
-      const gMap = t[profile.gender === 'f' ? 'f' : 'm'];
+
+      // 1. Resolve the tailor base: direct, sibling-inherited, or none.
+      let base = TAILOR_TABLE[exId];
+      let sibMul = 1;
+      if (!base) {
+        const sib = SIBLING_INHERIT[exId];
+        if (sib && TAILOR_TABLE[sib.base]) {
+          base = TAILOR_TABLE[sib.base];
+          sibMul = sib.mul || 1;
+        }
+      }
+      if (!base) return null;
+
+      // 2. Pick the right value from the base entry.
+      const gMap = base[profile.gender === 'f' ? 'f' : 'm'];
       const v = gMap[profile.level] || gMap.int;
       let w = 0;
-      if (t.type === 'bw' || t.type === 'bwHalf') w = profile.weight * v;
-      else                                        w = v; // 'add' or 'fixed'
-      if (profile.age && profile.age > 35) {
-        w *= Math.max(0.65, 1 - (profile.age - 35) * 0.005);
-      }
-      if (w <= 0) return 0;
-      if (w < 5)  return Math.max(0, Math.round(w * 2) / 2);
-      return Math.max(0, Math.round(w * 2 / 5) * 2.5);
+      if (base.type === 'bw' || base.type === 'bwHalf') w = profile.weight * v;
+      else                                              w = v;
+
+      // 3. Apply sibling multiplier (no-op when there's a direct entry).
+      w *= sibMul;
+
+      // 4. Age curve.
+      w *= ageMultiplier(profile.age);
+
+      // 5. Convert from 5-8 RM baseline to the actual prescribed rep range.
+      const reps = parseReps(EX[exId] && EX[exId].reps);
+      w *= repAdjustment(reps);
+
+      return roundToPlate(w);
     }
     function tailorEstimate(exId) {
       return tailorWeight(exId, getProfile());
