@@ -2727,6 +2727,80 @@
       reverse_fly_mach:{ name: 'Reverse fly (machine)',   sets: 3, reps: '12-15' },
     };
 
+    // ── Search-library classification ──────────────────────────────────────
+    // Each EX entry gets one (or more) tags so the in-form search only shows
+    // exercises that fit the section the user is adding into. Ambiguous lifts
+    // (hip thrust, kb swing, farmer carry, etc.) appear in multiple buckets.
+    const EX_BY_TAG = {
+      compounds: [
+        // Bench / press
+        'bench_bb','incl_bb_bench','flat_db_press','incl_db_press','machine_chest','dips_weighted',
+        'decline_bb','decline_db','smith_bench','pin_press','board_press','floor_press','spoto_press',
+        'larsen_press','pause_bench','touch_go_bench','band_bench','hammer_press','iso_chest',
+        'pushup','pushup_weighted','diamond_pushup','archer_pushup','pike_pushup','one_arm_pushup',
+        'plyo_pushup','dip_bw','bench_dip','close_grip','jm_press',
+        // Overhead
+        'standing_ohp','seated_db_ohp','machine_ohp','push_press','push_jerk','split_jerk',
+        'arnold_press','handstand_pu',
+        // Pull-ups + lat pulldowns
+        'pullup_weighted','pullup','chinup','pullup_wide','pullup_close','pullup_neutral',
+        'muscle_up','commando_pullup','lat_pulldown','pulldown_wide','pulldown_close','iso_pulldown',
+        // Rows
+        'bb_row','pendlay_row','t_bar_row','seated_cable_row','chest_supp_row','single_arm_row',
+        'smith_row','yates_row','seal_row','kroc_row','meadows_row','sa_cable_row','hammer_row',
+        'pendulum_row','helms_row','inverted_row',
+        // Squats
+        'back_squat','front_squat','hack_squat','leg_press','box_squat','pause_squat',
+        'anderson_squat','safety_bar_sq','band_squat','goblet_squat','zercher_squat','single_leg_press',
+        // Deadlifts
+        'rdl','conv_dl','sumo_dl','hex_dl','sl_dl','snatch_grip_dl','deficit_dl','block_pull',
+        'rack_pull','good_morning',
+        // Lunge / split
+        'bulgarian_ss','db_split_squat','walking_lunge','step_up','reverse_lunge',
+        // Olympic lifts
+        'power_clean','hang_clean','full_clean','power_snatch','hang_snatch','full_snatch',
+        'clean_and_jerk','clean_high_pull','snatch_high_pull','clean_pull','snatch_pull',
+        'overhead_squat','snatch_balance',
+        // Hip-dominant compound (also lives in isolation as accessory)
+        'hip_thrust','sl_hip_thrust','glute_bridge',
+        // Carries / conditioning that are full-body compound-ish
+        'farmer_carry','sled_push','sled_drag','prowler','kb_swing','turkish_getup','burpee',
+        'box_jump','broad_jump','squat_jump','depth_jump','bear_crawl','battle_ropes',
+        'jump_rope','med_ball_slam',
+      ],
+      isolation: [
+        // Chest accessory + fly
+        'cable_fly','pec_deck','cable_crossover','low_to_high_fly','high_to_low_fly',
+        'incl_cable_fly','db_fly','cable_pullover','db_pullover','svend_press',
+        // Shoulders
+        'db_lat_raise','cable_lat_raise','rear_delt_fly','reverse_pec','face_pull',
+        'front_raise_db','front_raise_cb','upright_row','lat_raise_mach','bent_lat_raise',
+        'plate_front','cable_y_raise','powell_raise','cuban_press',
+        // Biceps
+        'bb_curl','hammer_curl','cable_curl','incl_db_curl','preacher_curl','ez_curl',
+        'spider_curl','concentration_c','cable_hammer','reverse_curl','drag_curl',
+        'zottman_curl','waiter_curl','cheat_curl','twentyones','sa_cable_curl',
+        // Triceps
+        'tri_pushdown','oh_tri_ext','skullcrushers','tate_press','db_skullcrusher',
+        'rev_pushdown','sa_tri_ext','two_arm_oh_db','cable_kickback',
+        // Legs isolation + glutes
+        'leg_ext','seated_leg_curl','lying_leg_curl','hip_thrust','sl_hip_thrust',
+        'frog_pump','pull_through','glute_kickback','adductor','abductor','donkey_calf',
+        'seated_calf','calf_raise','nordic_curl','band_walk','glute_bridge',
+        // Back accessory
+        'straight_arm','shrug_bb','shrug_db','hex_bar_shrug','reverse_fly_mach',
+        // Grip work
+        'wrist_curl','rev_wrist_curl','farmer_hold','pinch_hold','plate_hold','gripper',
+        'dead_hang',
+      ],
+      abs: [
+        'cable_crunch','hang_leg_raise','ab_wheel','weighted_situp','decline_situp',
+        'russian_twist','toes_to_bar','plank','situp','crunch','bicycle_crunch','v_up',
+        'dragon_flag','cable_woodchop','pallof_press','side_plank','dead_bug',
+        'mountain_climb','hang_knee_raise','l_sit',
+      ],
+    };
+
     // ── Custom exercises (user-added) ──────────────────────────────────────
     function loadCustomEx() {
       try { return JSON.parse(localStorage.getItem(CUSTOM_EX_KEY) || '[]'); } catch { return []; }
@@ -5754,6 +5828,25 @@
         const list  = document.querySelector(`[data-suggest-list][data-group="${group}"][data-cat="${cat}"]`);
         if (!list) return;
 
+        // Group-aware search pool: tapping "+ Add exercise" inside Compounds
+        // restricts the search to compounds; inside Isolation to isolation;
+        // inside Abs to abs/core. The "Other added" catch-all group falls
+        // back to the full library. Custom user-added exercises (with no tag)
+        // appear in whichever group they were saved to plus the full library.
+        const tagPool = EX_BY_TAG[group] ? new Set(EX_BY_TAG[group]) : null;
+        function inGroupPool(id) {
+          if (!tagPool) return true; // 'other' or unknown group → full library
+          if (tagPool.has(id)) return true;
+          // Custom-added exercises (id starts with 'custom_') match the group
+          // they were saved under.
+          if (/^custom_/.test(id)) {
+            const customs = loadCustomEx();
+            const c = customs.find(x => x.id === id);
+            if (c && c.group === group) return true;
+          }
+          return false;
+        }
+
         function buildSuggestions(query) {
           const q = (query || '').trim().toLowerCase();
           if (q.length < 1) return [];
@@ -5761,6 +5854,7 @@
           // Higher score wins; tie-break alphabetically.
           const out = [];
           for (const id of Object.keys(EX)) {
+            if (!inGroupPool(id)) continue;
             const name = (EX[id].name || '').toLowerCase();
             if (!name.includes(q)) continue;
             let score = 1;
