@@ -8,6 +8,10 @@
 
   <!-- Add-to-Home-Screen / installable web app meta — iOS Safari + Android Chrome -->
   <meta name="theme-color" content="#000000" />
+  <!-- Tells the browser the doc is dark-themed BEFORE styles paint. Without
+       this, iframed embeds get a white canvas behind the body because the
+       parent's color-scheme doesn't inherit into a separate document. -->
+  <meta name="color-scheme" content="dark" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -19,6 +23,7 @@
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { color-scheme: dark; }
     html, body {
       background: #000;
       color: #fff;
