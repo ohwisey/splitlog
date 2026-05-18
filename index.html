@@ -569,7 +569,7 @@
     .rest-timer.done .rest-timer-time { animation: rest-pulse 0.7s ease-in-out infinite alternate; }
     @keyframes rest-pulse { from { opacity: 0.55; } to { opacity: 1; } }
 
-    /* Empty hero — shown on template.html before any split is configured */
+    /* Empty hero — shown on first load before any split is configured */
     .empty-hero {
       text-align: center;
       padding: 32px 24px;
@@ -2267,7 +2267,8 @@
       <div class="settings-msg" id="settings-msg"></div>
       <div class="settings-meta">
         SplitLog · <span id="settings-version">v1.0</span><br>
-        Single-file workout tracker · data stays on this device
+        Single-file workout tracker · data stays on this device<br>
+        <span id="settings-storage">Storage: —</span>
       </div>
       <button class="settings-close" id="settings-close">Close</button>
     </div>
@@ -2294,13 +2295,11 @@
     'use strict';
 
     // ── Storage keys ───────────────────────────────────────────────────────
-    // DEMO_MODE controls BOTH whether the demo seeds on first load AND which
-    // localStorage namespace we use. On Vercel both files share the same
-    // origin, so a single namespace would make template.html inherit the
-    // demo's seeded data — namespacing keeps them cleanly independent.
-    const DEMO_MODE        = false; // template.html — no demo seed
-    // Separate namespace per build mode prevents same-origin collisions
-    // when multiple instances are hosted on the same domain.
+    // DEMO_MODE is dead code now — the repo was simplified to a single
+    // index.html (no demo.html sibling), so the demo path is never reached.
+    // Kept behind a constant so a future demo.html could be revived without
+    // re-threading every conditional.
+    const DEMO_MODE        = false;
     const NS               = DEMO_MODE ? 'splitlog.demo.' : 'splitlog.';
     const SPLIT_KEY        = NS + 'config';
     const SPLIT_LOCKED_KEY = NS + 'locked';
@@ -5350,8 +5349,44 @@
       // Refresh version label (single source of truth = APP_VERSION constant).
       const v = document.getElementById('settings-version');
       if (v) v.textContent = APP_VERSION;
+      // Show storage usage so years-long users can see when they're approaching
+      // the browser's quota (typically 5–10 MB per origin) and back up before
+      // it hits a wall. Goes amber above 70% used, red above 90%.
+      refreshStorageMeter();
       // Re-render sync section so status reflects current state on every open.
       if (typeof renderSyncSection === 'function') renderSyncSection();
+    }
+
+    // Storage usage — synchronous size estimate of all NS-prefixed keys plus
+    // the optional async navigator.storage.estimate() refinement when the
+    // browser exposes the real quota number.
+    function refreshStorageMeter() {
+      const el = document.getElementById('settings-storage');
+      if (!el) return;
+      let bytes = 0;
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k) continue;
+        if (!k.startsWith(NS)) continue;
+        const v = localStorage.getItem(k) || '';
+        bytes += k.length + v.length;
+      }
+      const usedMB = (bytes / 1024 / 1024);
+      const usedTxt = usedMB < 1 ? Math.round(usedMB * 1024) + ' KB' : usedMB.toFixed(2) + ' MB';
+      el.textContent = 'Storage: ' + usedTxt + ' on this device';
+      el.style.color = '';
+      // Try to learn the actual quota; warn proportionally.
+      if (navigator.storage && navigator.storage.estimate) {
+        navigator.storage.estimate().then(est => {
+          if (!est || !est.quota) return;
+          const ratio = bytes / est.quota;
+          const quotaMB = (est.quota / 1024 / 1024).toFixed(0);
+          el.textContent = 'Storage: ' + usedTxt + ' of ~' + quotaMB + ' MB (' + Math.round(ratio * 100) + '%)';
+          if (ratio > 0.9)      el.style.color = '#ef4444'; // red — back up NOW
+          else if (ratio > 0.7) el.style.color = '#fbbf24'; // amber — back up soon
+          else                  el.style.color = '';
+        }).catch(() => {});
+      }
     }
     function closeSettingsSheet() {
       document.getElementById('settings-modal').classList.remove('open');
@@ -5373,13 +5408,21 @@
       openTailorModal();
     });
 
-    // Reset: double-confirm. The ONLY path to data loss. Never automatic.
+    // Reset: triple-confirm with an Export-first off-ramp so years of
+    // history can't vanish behind two casual taps.
     document.getElementById('settings-reset').addEventListener('click', () => {
-      const first = DEMO_MODE
-        ? 'Reset to demo? Wipes your data and reloads sample sessions.'
-        : 'Reset all data? This wipes your split, exercises, profile, and full session history. This cannot be undone.';
-      if (!confirm(first)) return;
-      if (!confirm('Are you absolutely sure? Type-tap OK to permanently delete everything.')) return;
+      const exportFirstMsg =
+        'Reset wipes your split, exercises, profile, streak, and every logged session. This cannot be undone.\n\n'
+        + 'Want to export a backup first? OK = export & cancel reset. Cancel = continue to reset.';
+      if (confirm(exportFirstMsg)) {
+        // User chose to back up first → trigger Export, abort reset. They
+        // can come back and Reset again once the JSON downloads.
+        const exportBtn = document.getElementById('settings-export');
+        if (exportBtn) exportBtn.click();
+        return;
+      }
+      if (!confirm('Last chance. Permanently delete every workout, set, weight, and history entry?')) return;
+      if (!confirm('Are you absolutely sure? OK to permanently delete everything.')) return;
       Object.keys(localStorage).forEach(k => {
         if (k === SPLIT_KEY || k === SPLIT_LOCKED_KEY || k === SEED_KEY ||
             k === CUSTOM_EX_KEY || k === PROFILE_KEY ||
@@ -5399,7 +5442,7 @@
       renderSplit();
     });
 
-    // ── Demo seed: 8-day split, intermediate progression (dead code in template) ──
+    // ── Demo seed: dead code retained for reference if the demo is revived ──
     const DEMO_SPLIT = [
       { name: 'Push heavy',        type: 'HEAVY',    category: 'push', exercises: [
         { id: 'bench_bb',         sets: 4, reps: '5'  },
@@ -5758,9 +5801,8 @@
     document.getElementById('rest-timer-add').addEventListener('click', () => adjustRestTimer(15));
     document.getElementById('rest-timer-sub').addEventListener('click', () => adjustRestTimer(-15));
 
-    // template.html (DEMO_MODE=false) opens with no split at all — the empty
-    // hero in renderSplit() drives the user into the customize wizard from
-    // scratch. The demo path has already saved DEMO_SPLIT via seedDemo above.
+    // First boot opens with no split — the empty hero in renderSplit()
+    // drives the user into the customize wizard from scratch.
     renderSplit();
 
     // ── Supabase sync ──────────────────────────────────────────────────────
