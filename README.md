@@ -22,31 +22,41 @@ Three options, ranked by friction:
 
 ## Embed it in your own dashboard
 
-Drop one `<iframe>` into your dashboard's HTML — works in any framework, no script tag needed:
+**One-line install** — paste this anywhere in your dashboard's HTML:
+
+```html
+<script src="https://ohwisey.github.io/splitlog/embed.js"></script>
+```
+
+That's it. The script injects a SplitLog widget where the `<script>` tag sits, auto-sizes to its content (empty state, day card, completed — every state fits perfectly), and inherits a dark theme. No CSS to write, no height to guess, no styling to break.
+
+**Want the full app inline** (day-picker grid + logger, not the compact card)?
+
+```html
+<script src="https://ohwisey.github.io/splitlog/embed.js?full=1"></script>
+```
+
+**Prefer a raw iframe** (e.g., your CSP blocks third-party scripts)?
 
 ```html
 <iframe
   src="https://ohwisey.github.io/splitlog/?view=today"
-  style="display:block;width:100%;height:220px;border:0;border-radius:20px;color-scheme:dark;">
+  style="display:block;width:100%;height:160px;border:0;border-radius:20px;background:#000;color-scheme:dark;">
 </iframe>
 ```
 
-`?view=today` switches the standalone into widget mode: one compact card showing today's day, type tag, and progress. Tap it to open the full app at `ohwisey.github.io/splitlog/` in the parent window.
+You lose auto-resize with this path — you'll have to pick a height yourself. The script-tag install is recommended.
 
-For the full standalone embedded inline (day-picker grid + logger), drop `?view=today` and set `height:680px` (or whatever fits your dashboard).
+**Privacy:** Each viewer's data lives in their browser's `localStorage` scoped to `ohwisey.github.io` — fully private per-viewer, even though everyone embeds the same URL.
 
-Each viewer's data lives in their browser's `localStorage` scoped to `ohwisey.github.io` — fully private per-viewer, even though everyone iframes the same URL.
-
-**Adding more standalones later:** stack iframes in a flex column with `gap: 24px;` so they line up cleanly:
+**Stacking multiple standalones:** Drop multiple `<script>` tags in order. Each injects its own iframe at its own location and auto-sizes independently. Everything lines up — same width, same radius, same dark theme.
 
 ```html
-<div style="display:flex;flex-direction:column;gap:24px;">
-  <iframe src="https://ohwisey.github.io/splitlog/?view=today" style="..."></iframe>
-  <iframe src="https://ohwisey.github.io/<next-standalone>/?view=today" style="..."></iframe>
-</div>
+<script src="https://ohwisey.github.io/splitlog/embed.js"></script>
+<script src="https://ohwisey.github.io/<next-standalone>/embed.js"></script>
 ```
 
-Same border-radius, same width, consistent gap — everything stays symmetrical.
+Wrap them in `<div style="display:flex;flex-direction:column;gap:24px;">` for consistent spacing.
 
 ## How it works
 

@@ -2144,6 +2144,42 @@
                         + 'body{display:block!important;min-height:0!important;}'
                         + '.wrap{max-width:none!important;padding:0!important;width:100%!important;}';
           document.head.appendChild(s);
+
+          // Auto-resize handshake: when iframed (by embed.js or any other host),
+          // post our widget-host height to the parent so the iframe matches.
+          // Observes layout changes (ResizeObserver) AND DOM re-renders
+          // (MutationObserver) so the iframe grows/shrinks across all states:
+          // empty → day card → completed → sign-in prompt, etc.
+          if (window.parent !== window) {
+            var _lastH = 0;
+            var _sendSize = function () {
+              var host = document.getElementById('widget-host');
+              if (!host) return;
+              var h = host.getBoundingClientRect().height;
+              if (h <= 0) return;
+              if (Math.abs(h - _lastH) < 0.5) return;
+              _lastH = h;
+              try {
+                window.parent.postMessage({ type: 'splitlog:size', h: Math.ceil(h) }, '*');
+              } catch (e) {}
+            };
+            var _startObserving = function () {
+              var host = document.getElementById('widget-host');
+              if (!host) { setTimeout(_startObserving, 50); return; }
+              _sendSize();
+              if (typeof ResizeObserver !== 'undefined') {
+                new ResizeObserver(_sendSize).observe(host);
+              } else {
+                setInterval(_sendSize, 500);
+              }
+              new MutationObserver(_sendSize).observe(host, { childList: true, subtree: true });
+            };
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', _startObserving);
+            } else {
+              _startObserving();
+            }
+          }
         }
       } catch (e) {}
     })();
