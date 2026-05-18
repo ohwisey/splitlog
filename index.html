@@ -6765,6 +6765,10 @@
       const host = document.getElementById('sync-section');
       if (!host) return;
       if (DEMO_MODE) { host.hidden = true; return; }
+      // When iframed inside an OhWisey dashboard, the dashboard owns sync —
+      // showing a second sync card here is just clutter. The dashboard's
+      // Supabase auth covers all standalones inheriting from window.opener.
+      if (window.parent !== window) { host.hidden = true; return; }
       host.hidden = false;
 
       const dotCls = 'sync-head-dot ' + (syncState === 'local' ? '' : syncState);
