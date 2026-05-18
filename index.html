@@ -2338,11 +2338,18 @@
     'use strict';
 
     // ── Storage keys ───────────────────────────────────────────────────────
-    // DEMO_MODE is dead code now — the repo was simplified to a single
-    // index.html (no demo.html sibling), so the demo path is never reached.
-    // Kept behind a constant so a future demo.html could be revived without
-    // re-threading every conditional.
-    const DEMO_MODE        = false;
+    // DEMO_MODE turns on when the URL carries ?demo=1 (or ?demo=true). The
+    // app then boots into a totally separate localStorage namespace
+    // (splitlog.demo.*) — your real workouts in splitlog.* are untouched and
+    // invisible from this session. Drop the param to flip back to production
+    // data. Demo data is local to whichever device loads the URL, so no
+    // one else can see it.
+    const DEMO_MODE = (function () {
+      try {
+        const v = new URLSearchParams(window.location.search).get('demo');
+        return v === '1' || v === 'true';
+      } catch { return false; }
+    })();
     const NS               = DEMO_MODE ? 'splitlog.demo.' : 'splitlog.';
     const SPLIT_KEY        = NS + 'config';
     const SPLIT_LOCKED_KEY = NS + 'locked';
